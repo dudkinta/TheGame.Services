@@ -1,4 +1,4 @@
-using RussianBotDaemon;
+using TheGameBotDaemon;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
