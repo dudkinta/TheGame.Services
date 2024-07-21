@@ -13,8 +13,8 @@ namespace HuntingService.Controllers
     [Route("[controller]")]
     public class GameController : ControllerBase
     {
-        private const int maxAnimals = 16;
-        private const int maxTargets = 10;
+        private const int maxAnimals = 25;
+        private const int maxTargets = 5;
         private readonly ILogger _logger;
         private readonly IConfiguration _config;
         private readonly IMessageSender _messageSender;
