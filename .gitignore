@@ -1,0 +1,45 @@
+# Папка с зависимостями node.js (обычно node_modules)
+node_modules/
+
+# Папка с сгенерированным кодом (если таковая имеется)
+dist/
+
+# Локальные конфигурационные файлы
+.env
+
+# Логи и временные файлы
+logs/
+*.log
+npm-debug.log*
+
+# Проекты VSCode
+.vscode/
+
+# Любые другие временные или системные файлы
+.DS_Store
+Thumbs.db
+
+# Папка с собранным кодом и временными файлами
+bin/
+obj/
+
+# Файлы с настройками Visual Studio
+.vs/
+
+# Конкретные файлы и папки .NET
+*.suo
+*.user
+*.bak
+*.cache
+*.dll
+*.exe
+
+# Папка с пакетами NuGet
+packages/
+
+# Папка с результатами тестов
+TestResults/
+
+# Папка с фронтом
+TheGameFront/
+TheGameBotDaemon/Config.cs

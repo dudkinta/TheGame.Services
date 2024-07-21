@@ -1,0 +1,40 @@
+name: Deploy LoginService
+
+on:
+  push:
+    branches:
+      - Login.Service
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./LoginService/LoginService.csproj
+
+      - name: Build project
+        run:  dotnet publish ./LoginService/LoginService.csproj -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o ./publish
+
+      - name: Copy files to server
+        env:
+            SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+            echo "$SSH_PRIVATE_KEY" | tr -d '\r' > private_key
+            chmod 600 private_key
+            
+            echo "Copying files to server..."
+            scp -o StrictHostKeyChecking=no -i private_key -r ./publish/* root@31.172.66.148:/root/login.service/
+            echo "Files copied. Running remote script..."
+            ssh -o StrictHostKeyChecking=no -i private_key root@31.172.66.148 'bash /root/restart_login.sh'
+            echo "Remote script executed. Cleaning up..."
+            rm private_key
