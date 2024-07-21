@@ -66,12 +66,13 @@ void AddAuthorize(IServiceCollection services)
 
 void RegistrationConsul(IServiceCollection services, IConfiguration configuration)
 {
+    var consulConfigSection = configuration.GetSection("AppSettings:Consul");
     var consulServiceConfig = new ConsulServiceConfiguration
     {
-        Name = "FriendService",
-        Address = "localhost",
-        Port = 5003,
-        HealthEndpoint = "api/friends/health/"
+        Name = consulConfigSection.GetValue<string>("ServiceName")!,
+        Address = consulConfigSection.GetValue<string>("Address")!,
+        Port = consulConfigSection.GetValue<int>("Port")!,
+        HealthEndpoint = consulConfigSection.GetValue<string>("HealthEndpoint")!
     };
 
     services.AddSingleton(consulServiceConfig);
