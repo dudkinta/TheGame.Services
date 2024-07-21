@@ -1,5 +1,5 @@
 ﻿using CommonLibs;
-using ExchangeData;
+using ExchangeData.Models;
 using FriendDbContex;
 using InnerApiLib;
 using Microsoft.AspNetCore.Authorization;

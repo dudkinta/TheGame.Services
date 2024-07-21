@@ -1,4 +1,4 @@
-﻿using ExchangeData;
+﻿using ExchangeData.Models;
 using FriendDbContex;
 using FriendDbContex.Models;
 using MassTransit;

@@ -1,6 +1,7 @@
 ﻿using Consul;
 using ExchangeData;
 using ExchangeData.Interfaces;
+using ExchangeData.Models;
 using LoginDbContext;
 using LoginDbContext.Models;
 using LoginService.Helpers;
@@ -101,7 +102,7 @@ namespace LoginService.Controllers
                     }
                     if (referId != 0)
                     {
-                        await _messageSender.SendMessage(new ReferModel { Id = db_user.id, Refer_id = referId }, RabbitQueue.ReferQueue, cancellationToken);
+                        await _messageSender.SendMessage(new ReferModel { Id = db_user.id, Refer_id = referId }, RabbitQueue.StatisticQueue, cancellationToken);
                     }
                     var jwt = _tokenService.GenerateUserToken(db_user, new TimeSpan(1, 0, 0));
                     return Ok(new { token = jwt });

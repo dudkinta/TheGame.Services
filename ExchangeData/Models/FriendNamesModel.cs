@@ -1,4 +1,4 @@
-﻿namespace ExchangeData
+﻿namespace ExchangeData.Models
 {
     public class FriendNamesModel
     {
