@@ -64,7 +64,7 @@ namespace FriendService.Controllers
                     var json = JsonConvert.SerializeObject(refers.Select(_ => _.id).ToArray());
                     var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    var friendURL = await serviceDiscovery.GetServiceAddress("FriendService");
+                    var friendURL = await serviceDiscovery.GetServiceAddress("LoginService");
                     if (string.IsNullOrEmpty(friendURL))
                         return NotFound("Service Friend not found");
 
