@@ -59,8 +59,6 @@ void AddServices(IServiceCollection services, IConfiguration configuration)
         });
     });
     services.AddScoped<IMessageSender, MessageSender>();
-
-    services.AddTransient<ConsulServiceDiscovery>();
     services.AddScoped<IInnerApiClient, InnerApiClient>();
 }
 
@@ -104,6 +102,6 @@ void RegistrationConsul(IServiceCollection services, IConfiguration configuratio
         cfg.Address = new Uri(consulEndpoint);
     }));
     services.AddHostedService<ConsulHostedService>();
-
+    services.AddTransient<ConsulServiceDiscovery>();
 }
 

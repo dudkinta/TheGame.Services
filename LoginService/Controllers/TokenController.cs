@@ -102,7 +102,7 @@ namespace LoginService.Controllers
                     }
                     if (referId != 0)
                     {
-                        await _messageSender.SendMessage(new ReferModel { Id = db_user.id, Refer_id = referId }, RabbitQueue.StatisticQueue, cancellationToken);
+                        await _messageSender.SendMessage(new ReferModel { Id = db_user.id, Refer_id = referId }, RabbitRoutingKeys.Referal, cancellationToken);
                     }
                     var jwt = _tokenService.GenerateUserToken(db_user, new TimeSpan(1, 0, 0));
                     return Ok(new { token = jwt });

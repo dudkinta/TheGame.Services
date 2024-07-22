@@ -130,7 +130,7 @@ namespace HuntingService.Controllers
                         aims += lineCheck.Count;
                     }
                 }
-                await _messageSender.SendMessage(new StatisticModel { Id = userId, AddShots = shots, AddAims = aims }, RabbitQueue.ReferQueue, cancellationToken);
+                await _messageSender.SendMessage(new FinishHuntModel { Id = userId, AddShots = shots, AddAims = aims }, RabbitRoutingKeys.FinishHunt, cancellationToken);
                 return Ok();
             }
             catch (Exception ex)

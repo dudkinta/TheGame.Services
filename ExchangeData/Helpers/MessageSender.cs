@@ -14,12 +14,12 @@ namespace ExchangeData.Helpers
             _rabbitMqSettings = rabbitMqSettings ?? throw new ArgumentNullException(nameof(rabbitMqSettings));
         }
 
-        public async Task SendMessage<T>(T message, string routingKey, CancellationToken cancellationToken) where T : class
+        public async Task SendMessage<T>(T message, RabbitRoutingKeys routingKey, CancellationToken cancellationToken) where T : class
         {
             var sendEndpoint = await _bus.GetSendEndpoint(new Uri($"exchange:{_rabbitMqSettings.Exchange}"));
             await sendEndpoint.Send(message, context =>
             {
-                context.SetRoutingKey(routingKey);
+                context.SetRoutingKey(routingKey.ToString());
                 context.Durable = true;
             }, cancellationToken);
         }

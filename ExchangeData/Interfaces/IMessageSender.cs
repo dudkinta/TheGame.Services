@@ -2,6 +2,6 @@
 {
     public interface IMessageSender
     {
-        Task SendMessage<T>(T message, string routingKey, CancellationToken cancellationToken) where T : class;
+        Task SendMessage<T>(T message, RabbitRoutingKeys routingKey, CancellationToken cancellationToken) where T : class;
     }
 }

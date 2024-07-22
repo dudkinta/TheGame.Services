@@ -1,6 +1,6 @@
 ﻿namespace ExchangeData.Models
 {
-    public class StatisticModel
+    public class FinishHuntModel
     {
         public int Id { get; set; }
         public int AddShots { get; set; }

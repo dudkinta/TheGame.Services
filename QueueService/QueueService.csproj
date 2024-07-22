@@ -16,5 +16,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ExchangeData\ExchangeData.csproj" />
     <ProjectReference Include="..\FriendDbContex\FriendDbContex.csproj" />
+    <ProjectReference Include="..\StatisticDbContext\StatisticDbContext.csproj" />
   </ItemGroup>
 </Project>
