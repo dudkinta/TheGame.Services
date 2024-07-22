@@ -1,5 +1,6 @@
 ﻿using Consul;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Net;
 
 namespace CommonLibs
@@ -10,13 +11,17 @@ namespace CommonLibs
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly ConsulServiceConfiguration _serviceConfiguration;
         private readonly string _registrationId;
+        private readonly ILogger _logger;
+        private Timer? _timer;
 
-        public ConsulHostedService(IConsulClient consulClient, IHostApplicationLifetime hostApplicationLifetime, ConsulServiceConfiguration serviceConfiguration)
+        public ConsulHostedService(IConsulClient consulClient, IHostApplicationLifetime hostApplicationLifetime,
+            ConsulServiceConfiguration serviceConfiguration, ILogger<ConsulHostedService> logger)
         {
             _consulClient = consulClient;
             _hostApplicationLifetime = hostApplicationLifetime;
             _serviceConfiguration = serviceConfiguration;
             _registrationId = $"{Dns.GetHostName()}-{Guid.NewGuid()}";
+            _logger = logger;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -29,14 +34,13 @@ namespace CommonLibs
                 Port = _serviceConfiguration.Port,
                 Check = new AgentServiceCheck
                 {
-                    HTTP = $"http://{_serviceConfiguration.Address}:{_serviceConfiguration.Port}/{_serviceConfiguration.HealthEndpoint}",
-                    Interval = TimeSpan.FromSeconds(10),
-                    Timeout = TimeSpan.FromSeconds(5),
+                    TTL = TimeSpan.FromSeconds(30),
                     DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(1)
                 }
             };
 
             await _consulClient.Agent.ServiceRegister(registration, cancellationToken);
+            _timer = new Timer(UpdateTTL!, null, TimeSpan.Zero, TimeSpan.FromSeconds(25));
 
             _hostApplicationLifetime.ApplicationStopping.Register(() =>
             {
@@ -47,6 +51,13 @@ namespace CommonLibs
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await _consulClient.Agent.ServiceDeregister(_registrationId, cancellationToken);
+        }
+
+        private void UpdateTTL(object state)
+        {
+            var ttlCheckId = _registrationId;
+            _consulClient.Agent.PassTTL(ttlCheckId, "Service is healthy").Wait();
+            _logger.LogInformation("Service {ServiceId} TTL check updated successfully.", _registrationId);
         }
     }
 }

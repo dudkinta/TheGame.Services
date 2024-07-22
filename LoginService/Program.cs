@@ -101,7 +101,6 @@ void RegistrationConsul(IServiceCollection services, IConfiguration configuratio
         Name = consulConfigSection.GetValue<string>("ServiceName")!,
         Address = consulConfigSection.GetValue<string>("Address")!,
         Port = consulConfigSection.GetValue<int>("Port")!,
-        HealthEndpoint = consulConfigSection.GetValue<string>("HealthEndpoint")!
     };
 
     services.AddSingleton(consulServiceConfig);
