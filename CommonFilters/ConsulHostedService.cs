@@ -5,7 +5,7 @@ using System.Net;
 
 namespace CommonLibs
 {
-    public class ConsulHostedService : IHostedService
+    public class ConsulHostedService : IHostedService, IDisposable
     {
         private readonly IConsulClient _consulClient;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
@@ -20,7 +20,7 @@ namespace CommonLibs
             _consulClient = consulClient;
             _hostApplicationLifetime = hostApplicationLifetime;
             _serviceConfiguration = serviceConfiguration;
-            _registrationId = $"{Dns.GetHostName()}-{Guid.NewGuid()}";
+            _registrationId = $"{_serviceConfiguration.Name}-{Dns.GetHostName()}-{Guid.NewGuid()}";
             _logger = logger;
         }
 
@@ -51,13 +51,19 @@ namespace CommonLibs
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await _consulClient.Agent.ServiceDeregister(_registrationId, cancellationToken);
+            _timer?.Change(Timeout.Infinite, 0);
         }
 
-        private void UpdateTTL(object state)
+        private async void UpdateTTL(object state)
         {
-            var ttlCheckId = _registrationId;
-            _consulClient.Agent.PassTTL(ttlCheckId, "Service is healthy").Wait();
+            var ttlCheckId = $"service:{_registrationId}";
+            await _consulClient.Agent.PassTTL(ttlCheckId, "Service is healthy");
             _logger.LogInformation("Service {ServiceId} TTL check updated successfully.", _registrationId);
+        }
+
+        public void Dispose()
+        {
+            _timer?.Dispose();
         }
     }
 }
