@@ -50,7 +50,7 @@ void AddServices(IServiceCollection services, IConfiguration configuration)
 
 void AddRabbitMQSender(IServiceCollection services, IConfiguration configuration)
 {
-    var rabbitMqSettings = configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>() ?? new RabbitMqSettings();
+    var rabbitMqSettings = configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>() ?? throw new ArgumentNullException(nameof(RabbitMqSettings));
     services.AddSingleton(rabbitMqSettings!);
 
     services.AddSingleton<IConnection>(sp =>

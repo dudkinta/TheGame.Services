@@ -18,6 +18,7 @@ namespace ExchangeData.Helpers
             var factory = new ConnectionFactory()
             {
                 HostName = _rabbitMqSettings.Host,
+                Port = 5672,
                 UserName = _rabbitMqSettings.Username,
                 Password = _rabbitMqSettings.Password
             };

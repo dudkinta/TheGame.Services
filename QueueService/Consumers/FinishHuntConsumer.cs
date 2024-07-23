@@ -1,5 +1,6 @@
 ﻿using ExchangeData;
 using ExchangeData.Models;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -8,19 +9,19 @@ using System.Text;
 
 namespace QueueService.Consumers
 {
-    public class FinishHuntConsumer : BackgroundService, IDisposable
+    public class FinishHuntConsumer : BackgroundService
     {
         private readonly ILogger<FinishHuntConsumer> _logger;
         private readonly RabbitMqSettings _rabbitMqSettings;
-        private readonly IStatisticContext _context;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private IConnection? _connection;
         private IModel? _channel;
 
-        public FinishHuntConsumer(ILogger<FinishHuntConsumer> logger, RabbitMqSettings rabbitMqSettings, IStatisticContext context)
+        public FinishHuntConsumer(ILogger<FinishHuntConsumer> logger, RabbitMqSettings rabbitMqSettings, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _rabbitMqSettings = rabbitMqSettings;
-            _context = context;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         protected override Task ExecuteAsync(CancellationToken cancellationToken)
@@ -34,7 +35,7 @@ namespace QueueService.Consumers
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            _channel.QueueDeclare(queue: "ReferalQueue",
+            _channel.QueueDeclare(queue: "HuntingResult",
                                   durable: true,
                                   exclusive: false,
                                   autoDelete: false,
@@ -45,22 +46,25 @@ namespace QueueService.Consumers
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                _logger.LogInformation($"[ReferalConsumer] Received {message}");
+                _logger.LogInformation($"[FinishHuntConsumer] Received {message}");
 
                 try
                 {
-                    var jObj = JsonConvert.DeserializeObject<FinishHuntModel>(message);
-                    if (jObj == null)
-                        throw new FormatException("FinishHuntModel not deserialized");
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var context = scope.ServiceProvider.GetRequiredService<IStatisticContext>();
+                        var jObj = JsonConvert.DeserializeObject<FinishHuntModel>(message);
+                        if (jObj == null)
+                            throw new FormatException("HuntResultModel not deserialized");
 
-                    //var refOwner = await _context.Friends.FirstOrDefaultAsync(_ => _.id == jObj.Id);
-                    //if (refOwner == null)
-                    //{
-                    //    var data = new FriendModel { id = jObj.Id, refer_id = jObj.Refer_id };
-                    //    await _context.Friends.AddAsync(data, cancellationToken);
-                    //    await _context.SaveAsync(cancellationToken);
-                    //}
-                    await Task.Delay(0);
+                        var result = await context.Storage.FirstOrDefaultAsync(_ => _.id == jObj.Id);
+                        if (result != null)
+                        {
+                            //    var data = new StatisticModel { Id = jObj.Id, Result = jObj.Result };
+                            //    await context.Statistics.AddAsync(data, cancellationToken);
+                            await context.SaveAsync(cancellationToken);
+                        }
+                    }
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }
                 catch (FormatException ex)

@@ -10,19 +10,19 @@ using System.Text;
 
 namespace QueueService.Consumers
 {
-    public class ReferalConsumer : BackgroundService, IDisposable
+    public class ReferalConsumer : BackgroundService
     {
         private readonly ILogger<ReferalConsumer> _logger;
         private readonly RabbitMqSettings _rabbitMqSettings;
-        private readonly IFriendContext _context;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private IConnection? _connection;
         private IModel? _channel;
 
-        public ReferalConsumer(ILogger<ReferalConsumer> logger, RabbitMqSettings rabbitMqSettings, IFriendContext context)
+        public ReferalConsumer(ILogger<ReferalConsumer> logger, RabbitMqSettings rabbitMqSettings, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _rabbitMqSettings = rabbitMqSettings;
-            _context = context;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         protected override Task ExecuteAsync(CancellationToken cancellationToken)
@@ -51,18 +51,21 @@ namespace QueueService.Consumers
 
                 try
                 {
-                    var jObj = JsonConvert.DeserializeObject<ReferModel>(message);
-                    if (jObj == null)
-                        throw new FormatException("ReferModel not deserialized");
-
-                    var refOwner = await _context.Friends.FirstOrDefaultAsync(_ => _.id == jObj.Id);
-                    if (refOwner == null)
+                    using (var scope = _serviceScopeFactory.CreateScope())
                     {
-                        var data = new FriendModel { id = jObj.Id, refer_id = jObj.Refer_id };
-                        await _context.Friends.AddAsync(data, cancellationToken);
-                        await _context.SaveAsync(cancellationToken);
-                    }
+                        var context = scope.ServiceProvider.GetRequiredService<IFriendContext>();
+                        var jObj = JsonConvert.DeserializeObject<ReferModel>(message);
+                        if (jObj == null)
+                            throw new FormatException("ReferModel not deserialized");
 
+                        var refOwner = await context.Friends.FirstOrDefaultAsync(_ => _.id == jObj.Id);
+                        if (refOwner == null)
+                        {
+                            var data = new FriendModel { id = jObj.Id, refer_id = jObj.Refer_id };
+                            await context.Friends.AddAsync(data, cancellationToken);
+                            await context.SaveAsync(cancellationToken);
+                        }
+                    }
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }
                 catch (FormatException ex)

@@ -26,14 +26,14 @@ void AddDbContext(IServiceCollection services, IConfiguration configuration)
 
     var statisticConnectionString = configuration.GetConnectionString("StatisticConnection") ?? string.Empty;
     services.AddDbContext<IStatisticContext, StatisticContext>(options =>
-        options.UseNpgsql(friendConnectionString));
+        options.UseNpgsql(statisticConnectionString));
 }
 
 void AddConsumers(IServiceCollection services, IConfiguration configuration)
 {
-    var rabbitMqSettings = configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>() ?? new RabbitMqSettings();
-    services.AddSingleton(rabbitMqSettings);
+    var rabbitMqSettings = configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>() ?? throw new ArgumentNullException(nameof(RabbitMqSettings));
+    services.AddSingleton(rabbitMqSettings!);
 
-    services.AddHostedService<ReferalConsumer>();
-    services.AddHostedService<FinishHuntConsumer>();
+    services.AddSingleton<IHostedService, ReferalConsumer>();
+    services.AddSingleton<IHostedService, FinishHuntConsumer>();
 }
