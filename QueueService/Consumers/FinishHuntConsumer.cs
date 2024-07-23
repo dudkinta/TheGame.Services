@@ -57,11 +57,12 @@ namespace QueueService.Consumers
                         if (jObj == null)
                             throw new FormatException("HuntResultModel not deserialized");
 
-                        var result = await context.Storage.FirstOrDefaultAsync(_ => _.id == jObj.Id);
-                        if (result != null)
+                        var storage = await context.Storage.FirstOrDefaultAsync(_ => _.id == jObj.Id);
+                        if (storage != null)
                         {
-                            //    var data = new StatisticModel { Id = jObj.Id, Result = jObj.Result };
-                            //    await context.Statistics.AddAsync(data, cancellationToken);
+                            storage.aim += jObj.AddAims;
+                            storage.hunts++;
+                            storage.shots += jObj.AddShots;
                             await context.SaveAsync(cancellationToken);
                         }
                     }
