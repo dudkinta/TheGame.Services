@@ -35,12 +35,11 @@ void AddFilters(IServiceCollection services)
 
 void AddServices(IServiceCollection services, IConfiguration configuration)
 {
-    services.AddTransient<ConsulServiceDiscovery>();
-    services.AddScoped<IInnerApiClient, InnerApiClient>();
-
     var connectionString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
     services.AddDbContext<IFriendContext, FriendContext>(options =>
         options.UseNpgsql(connectionString));
+
+    services.AddScoped<IInnerApiClient, InnerApiClient>();
 }
 
 void AddAuthorize(IServiceCollection services)
@@ -83,5 +82,5 @@ void RegistrationConsul(IServiceCollection services, IConfiguration configuratio
         cfg.Address = new Uri(consulEndpoint);
     }));
     services.AddHostedService<ConsulHostedService>();
-
+    services.AddTransient<ConsulServiceDiscovery>();
 }

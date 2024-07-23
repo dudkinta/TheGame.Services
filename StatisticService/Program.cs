@@ -4,16 +4,17 @@ using ExchangeData;
 using ExchangeData.Helpers;
 using ExchangeData.Interfaces;
 using InnerApiLib;
-using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using RabbitMQ.Client;
 using StatisticDbContext;
 
 var builder = WebApplication.CreateBuilder(args);
 
 AddFilters(builder.Services);
 AddServices(builder.Services, builder.Configuration);
+AddRabbitMQSender(builder.Services, builder.Configuration);
 RegistrationConsul(builder.Services, builder.Configuration);
 AddAuthorize(builder.Services);
 
@@ -44,22 +45,34 @@ void AddServices(IServiceCollection services, IConfiguration configuration)
     services.AddDbContext<IStatisticContext, StatisticContext>(options =>
     options.UseNpgsql(connectionString));
 
-    var rabbitMqSettings = configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>();
+    services.AddScoped<IInnerApiClient, InnerApiClient>();
+}
+
+void AddRabbitMQSender(IServiceCollection services, IConfiguration configuration)
+{
+    var rabbitMqSettings = configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>() ?? new RabbitMqSettings();
     services.AddSingleton(rabbitMqSettings!);
 
-    services.AddMassTransit(x =>
+    services.AddSingleton<IConnection>(sp =>
     {
-        x.UsingRabbitMq((context, cfg) =>
+        var factory = new ConnectionFactory()
         {
-            cfg.Host(rabbitMqSettings!.Host, h =>
-            {
-                h.Username(rabbitMqSettings.Username);
-                h.Password(rabbitMqSettings.Password);
-            });
-        });
+            HostName = rabbitMqSettings.Host,
+            UserName = rabbitMqSettings.Username,
+            Password = rabbitMqSettings.Password
+        };
+        return factory.CreateConnection();
     });
+
+    services.AddSingleton<IModel>(sp =>
+    {
+        var connection = sp.GetRequiredService<IConnection>();
+        var channel = connection.CreateModel();
+        channel.ExchangeDeclare(exchange: rabbitMqSettings.Exchange, type: ExchangeType.Topic, durable: true, autoDelete: false);
+        return channel;
+    });
+
     services.AddScoped<IMessageSender, MessageSender>();
-    services.AddScoped<IInnerApiClient, InnerApiClient>();
 }
 
 void AddAuthorize(IServiceCollection services)

@@ -5,16 +5,17 @@ using ExchangeData.Helpers;
 using ExchangeData.Interfaces;
 using HuntingDbContext;
 using InnerApiLib;
-using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using RabbitMQ.Client;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 AddFilters(builder.Services);
 AddServices(builder.Services, builder.Configuration);
+AddRabbitMQSender(builder.Services, builder.Configuration);
 RegistrationConsul(builder.Services, builder.Configuration);
 AddAuthorize(builder.Services);
 
@@ -45,23 +46,34 @@ void AddServices(IServiceCollection services, IConfiguration configuration)
     services.AddDbContext<IHuntingContext, HuntingContext>(options =>
     options.UseNpgsql(connectionString));
 
-    var rabbitMqSettings = configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>();
-    services.AddSingleton(rabbitMqSettings!);
-    services.AddMassTransit(x =>
-    {
-        x.UsingRabbitMq((context, cfg) =>
-        {
-            cfg.Host(rabbitMqSettings!.Host, h =>
-            {
-                h.Username(rabbitMqSettings.Username);
-                h.Password(rabbitMqSettings.Password);
-            });
-        });
-    });
-    services.AddScoped<IMessageSender, MessageSender>();
-
-    services.AddTransient<ConsulServiceDiscovery>();
     services.AddScoped<IInnerApiClient, InnerApiClient>();
+}
+
+void AddRabbitMQSender(IServiceCollection services, IConfiguration configuration)
+{
+    var rabbitMqSettings = configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>() ?? new RabbitMqSettings();
+    services.AddSingleton(rabbitMqSettings!);
+
+    services.AddSingleton<IConnection>(sp =>
+    {
+        var factory = new ConnectionFactory()
+        {
+            HostName = rabbitMqSettings.Host,
+            UserName = rabbitMqSettings.Username,
+            Password = rabbitMqSettings.Password
+        };
+        return factory.CreateConnection();
+    });
+
+    services.AddSingleton<IModel>(sp =>
+    {
+        var connection = sp.GetRequiredService<IConnection>();
+        var channel = connection.CreateModel();
+        channel.ExchangeDeclare(exchange: rabbitMqSettings.Exchange, type: ExchangeType.Topic, durable: true, autoDelete: false);
+        return channel;
+    });
+
+    services.AddScoped<IMessageSender, MessageSender>();
 }
 
 void AddAuthorize(IServiceCollection services)
@@ -104,5 +116,5 @@ void RegistrationConsul(IServiceCollection services, IConfiguration configuratio
         cfg.Address = new Uri(consulEndpoint);
     }));
     services.AddHostedService<ConsulHostedService>();
-
+    services.AddTransient<ConsulServiceDiscovery>();
 }

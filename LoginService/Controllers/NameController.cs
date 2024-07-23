@@ -1,6 +1,5 @@
 ﻿using ExchangeData.Models;
 using LoginDbContext;
-using MassTransit.Initializers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
