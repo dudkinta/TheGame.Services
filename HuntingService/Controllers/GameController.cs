@@ -150,7 +150,7 @@ namespace HuntingService.Controllers
                         coins = aims * maxLevelGun;
                 }
                 await _messageSender.SendMessage(new FinishHuntModel { Id = userId, AddShots = shots, AddAims = aims, coins = coins }, RabbitRoutingKeys.FinishHunt, cancellationToken);
-                return Ok();
+                return Ok(new { coins = coins });
             }
             catch (Exception ex)
             {
