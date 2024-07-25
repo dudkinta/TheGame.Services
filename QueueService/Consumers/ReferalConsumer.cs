@@ -51,20 +51,18 @@ namespace QueueService.Consumers
 
                 try
                 {
-                    using (var scope = _serviceScopeFactory.CreateScope())
-                    {
-                        var context = scope.ServiceProvider.GetRequiredService<IFriendContext>();
-                        var jObj = JsonConvert.DeserializeObject<ReferModel>(message);
-                        if (jObj == null)
-                            throw new FormatException("ReferModel not deserialized");
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<IFriendContext>();
+                    var jObj = JsonConvert.DeserializeObject<ReferModel>(message);
+                    if (jObj == null)
+                        throw new FormatException("ReferModel not deserialized");
 
-                        var refOwner = await context.Friends.FirstOrDefaultAsync(_ => _.id == jObj.Id);
-                        if (refOwner == null)
-                        {
-                            var data = new FriendModel { id = jObj.Id, refer_id = jObj.Refer_id };
-                            await context.Friends.AddAsync(data, cancellationToken);
-                            await context.SaveAsync(cancellationToken);
-                        }
+                    var refOwner = await context.Friends.FirstOrDefaultAsync(_ => _.id == jObj.Id);
+                    if (refOwner == null)
+                    {
+                        var data = new FriendModel { id = jObj.Id, refer_id = jObj.Refer_id };
+                        await context.Friends.AddAsync(data, cancellationToken);
+                        await context.SaveAsync(cancellationToken);
                     }
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }

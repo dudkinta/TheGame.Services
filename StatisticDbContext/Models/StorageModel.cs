@@ -2,7 +2,7 @@
 {
     public class StorageModel
     {
-        public int id { get; set; }
+        public int user_id { get; set; }
         public int energy { get; set; }
         public DateTime last_check_energy { get; set; }
         public long main_coin { get; set; }

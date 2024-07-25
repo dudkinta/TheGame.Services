@@ -38,12 +38,12 @@ namespace StatisticService.Controllers
 
             try
             {
-                var userStats = await _context.Storage.FirstOrDefaultAsync(_ => _.id == userId, cancellationToken);
+                var userStats = await _context.Storage.FirstOrDefaultAsync(_ => _.user_id == userId, cancellationToken);
                 if (userStats == null)
                 {
                     userStats = new StorageModel()
                     {
-                        id = userId,
+                        user_id = userId,
                         last_check_energy = DateTime.UtcNow,
                         energy = 600,
                         bonus_coin = 0,
@@ -73,7 +73,7 @@ namespace StatisticService.Controllers
         {
             try
             {
-                var userStats = await _context.Storage.FirstOrDefaultAsync(_ => _.id == userId, cancellationToken);
+                var userStats = await _context.Storage.FirstOrDefaultAsync(_ => _.user_id == userId, cancellationToken);
                 if (userStats == null)
                     return BadRequest("User not found");
 
@@ -92,6 +92,22 @@ namespace StatisticService.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [Authorize(AuthenticationSchemes = "Service", Policy = "ServicePolicy")]
+        [HttpGet("getitems")]
+        public async Task<IActionResult> GetItems(int userId, string itemType, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userItems = await _context.Inventory.Include(_ => _.item).Where(_ => _.user_id == userId && _.item != null && _.item.type == itemType).ToListAsync(cancellationToken);
+                return Ok(userItems);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
         }
     }
 }

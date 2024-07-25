@@ -50,21 +50,20 @@ namespace QueueService.Consumers
 
                 try
                 {
-                    using (var scope = _serviceScopeFactory.CreateScope())
-                    {
-                        var context = scope.ServiceProvider.GetRequiredService<IStatisticContext>();
-                        var jObj = JsonConvert.DeserializeObject<FinishHuntModel>(message);
-                        if (jObj == null)
-                            throw new FormatException("HuntResultModel not deserialized");
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<IStatisticContext>();
+                    var jObj = JsonConvert.DeserializeObject<FinishHuntModel>(message);
+                    if (jObj == null)
+                        throw new FormatException("HuntResultModel not deserialized");
 
-                        var storage = await context.Storage.FirstOrDefaultAsync(_ => _.id == jObj.Id);
-                        if (storage != null)
-                        {
-                            storage.aim += jObj.AddAims;
-                            storage.hunts++;
-                            storage.shots += jObj.AddShots;
-                            await context.SaveAsync(cancellationToken);
-                        }
+                    var storage = await context.Storage.FirstOrDefaultAsync(_ => _.user_id == jObj.Id);
+                    if (storage != null)
+                    {
+                        storage.aim += jObj.AddAims;
+                        storage.hunts++;
+                        storage.shots += jObj.AddShots;
+                        storage.main_coin += jObj.coins;
+                        await context.SaveAsync(cancellationToken);
                     }
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }

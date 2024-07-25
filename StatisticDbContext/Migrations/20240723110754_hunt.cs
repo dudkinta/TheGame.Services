@@ -5,7 +5,7 @@
 namespace StatisticDbContext.Migrations
 {
     /// <inheritdoc />
-    public partial class hunt : Migration
+    public partial class Hunt : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

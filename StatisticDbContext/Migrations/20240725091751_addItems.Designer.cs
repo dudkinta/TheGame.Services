@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StatisticDbContext;
@@ -11,9 +12,11 @@ using StatisticDbContext;
 namespace StatisticDbContext.Migrations
 {
     [DbContext(typeof(StatisticContext))]
-    partial class StatisticContextModelSnapshot : ModelSnapshot
+    [Migration("20240725091751_addItems")]
+    partial class addItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,14 +39,14 @@ namespace StatisticDbContext.Migrations
                     b.Property<int>("item_id")
                         .HasColumnType("integer");
 
-                    b.Property<int>("user_id")
-                        .HasColumnType("integer");
+                    b.Property<long>("user_id")
+                        .HasColumnType("bigint");
 
                     b.HasKey("id");
 
                     b.HasIndex("item_id");
 
-                    b.ToTable("inventory", (string)null);
+                    b.ToTable("Inventory");
                 });
 
             modelBuilder.Entity("StatisticDbContext.Models.ItemModel", b =>
@@ -55,30 +58,27 @@ namespace StatisticDbContext.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<string>("asset")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
                     b.Property<string>("description")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("level")
                         .HasColumnType("integer");
 
                     b.Property<string>("name")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("type")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
                     b.HasKey("id");
 
-                    b.ToTable("items", (string)null);
+                    b.ToTable("Items");
                 });
 
             modelBuilder.Entity("StatisticDbContext.Models.StorageModel", b =>

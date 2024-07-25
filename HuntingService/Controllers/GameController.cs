@@ -60,7 +60,6 @@ namespace HuntingService.Controllers
                     return NotFound("Service Statistics not found");
 
                 var getEnergyEndpoint = _config.GetSection("AppSettings:GetEnergyEndpoint").Value ?? string.Empty;
-
                 if (string.IsNullOrEmpty(getEnergyEndpoint))
                     return BadRequest("GetStatisticEndpoint not found");
 
@@ -130,7 +129,27 @@ namespace HuntingService.Controllers
                         aims += lineCheck.Count;
                     }
                 }
-                await _messageSender.SendMessage(new FinishHuntModel { Id = userId, AddShots = shots, AddAims = aims }, RabbitRoutingKeys.FinishHunt, cancellationToken);
+                var statisticURL = await _serviceDiscovery.GetServiceAddress("StatisticService");
+                if (string.IsNullOrEmpty(statisticURL))
+                    return NotFound("Service Statistics not found");
+
+                var getItemsEndpoint = _config.GetSection("AppSettings:GetItemsEndpoint").Value ?? string.Empty;
+                if (string.IsNullOrEmpty(getItemsEndpoint))
+                    return BadRequest("GetItemsEndpoint not found");
+
+                var itemsResp = await _apiClient.GetAsync<IEnumerable<InventoryModel>?>($"http://{statisticURL}/{getItemsEndpoint}?userId={userId}&itemType=gun", cancellationToken);
+                if (!itemsResp.IsSuccessStatusCode)
+                    return BadRequest(itemsResp.Error);
+
+                var coins = aims;
+                var guns = itemsResp.Message?.Where(_ => _.item != null).Select(_ => _.item);
+                if (guns != null && guns.Count() > 0)
+                {
+                    var maxLevelGun = guns.Max(_ => _!.level);
+                    if (maxLevelGun > 0)
+                        coins = aims * maxLevelGun;
+                }
+                await _messageSender.SendMessage(new FinishHuntModel { Id = userId, AddShots = shots, AddAims = aims, coins = coins }, RabbitRoutingKeys.FinishHunt, cancellationToken);
                 return Ok();
             }
             catch (Exception ex)
