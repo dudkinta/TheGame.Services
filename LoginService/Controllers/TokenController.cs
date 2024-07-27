@@ -100,6 +100,16 @@ namespace LoginService.Controllers
                         await _context.SaveAsync(cancellationToken);
                         db_user = new_user.Entity;
                     }
+                    else
+                    {
+                        db_user.first_name = user.first_name;
+                        db_user.last_name = user.last_name;
+                        db_user.username = user.username;
+                        db_user.is_premium = user.is_premium;
+                        db_user.language_code = user.language_code;
+                        db_user.last_login = DateTime.UtcNow;
+                        await _context.SaveAsync(cancellationToken);
+                    }
                     if (referId != 0)
                     {
                         await _messageSender.SendMessage(new ReferModel { Id = db_user.id, Refer_id = referId }, RabbitRoutingKeys.Referal, cancellationToken);
