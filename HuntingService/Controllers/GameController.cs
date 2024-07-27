@@ -38,7 +38,7 @@ namespace HuntingService.Controllers
 
         [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
         [HttpGet("getgame")]
-        public async Task<IActionResult> getGame(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetGame(CancellationToken cancellationToken)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace HuntingService.Controllers
 
         [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
         [HttpPost("finishgame")]
-        public async Task<IActionResult> finishGame(GameResult gameResult, CancellationToken cancellationToken)
+        public async Task<IActionResult> FinishGame(GameResult gameResult, CancellationToken cancellationToken)
         {
             try
             {

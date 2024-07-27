@@ -89,7 +89,7 @@ namespace LoginService.Controllers
                         var new_user = _context.Users.Add(new UserModel
                         {
                             tg_id = user.id,
-                            first_name = user.last_name,
+                            first_name = user.first_name,
                             last_name = user.last_name,
                             allows_write_to_pm = user.allows_write_to_pm,
                             is_premium = user.is_premium,
