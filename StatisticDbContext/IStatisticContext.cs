@@ -6,8 +6,11 @@ namespace StatisticDbContext
     public interface IStatisticContext
     {
         DbSet<StorageModel> Storage { get; set; }
-        DbSet<InventoryModel> Inventory { get; set; }
         DbSet<ItemModel> Items { get; set; }
+        DbSet<HeroModel> Heroes { get; set; }
+        DbSet<InventoryModel> Inventory { get; set; }
+        DbSet<BarrackModel> Barracks { get; set; }
+        DbSet<ArmyModel> Armies { get; set; }
         Task<int> SaveAsync(CancellationToken cancellationToken);
     }
 }

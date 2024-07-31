@@ -40,8 +40,7 @@ namespace StatisticDbContext.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     user_id = table.Column<int>(type: "integer", nullable: false),
-                    item_id = table.Column<int>(type: "integer", nullable: false),
-                    count = table.Column<int>(type: "integer", nullable: false)
+                    item_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
