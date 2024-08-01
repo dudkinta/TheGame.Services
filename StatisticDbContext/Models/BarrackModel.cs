@@ -6,7 +6,6 @@
         public int user_id { get; set; }
         public int hero_id { get; set; }
         public HeroModel? hero { get; set; }
-        public int? army_id { get; set; }
         public ArmyModel? army { get; set; }
     }
 }

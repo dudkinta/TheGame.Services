@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace StatisticDbContext.Migrations
 {
     /// <inheritdoc />
-    public partial class army : Migration
+    public partial class Army : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -90,24 +90,65 @@ namespace StatisticService.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
                 return BadRequest(ex.Message);
             }
         }
 
         [Authorize(AuthenticationSchemes = "Service", Policy = "ServicePolicy")]
-        [HttpGet("getitems")]
-        public async Task<IActionResult> GetItems(int userId, string itemType, CancellationToken cancellationToken)
+        [HttpGet("gethunter")]
+        public async Task<IActionResult> GetHunter(int userId, CancellationToken cancellationToken)
         {
             try
             {
-                var userItems = await _context.Inventory.Include(_ => _.item).Where(_ => _.user_id == userId && _.item != null && _.item.type == itemType).ToListAsync(cancellationToken);
-                return Ok(userItems);
+                var hunter = await _context.Armies.Include(_ => _.barrack).Include(_ => _.equip).Where(_ => _.user_id == userId && _.useType == 1).FirstOrDefaultAsync(cancellationToken);
+                var items = _context.Items;
+                var heroes = _context.Heroes;
+                if (hunter == null)
+                    return Ok(new
+                    {
+                        Items = await items.Where(_ => _.level == 1).ToListAsync(cancellationToken),
+                        Heroes = await heroes.Where(_ => _.level == 1).ToListAsync(cancellationToken)
+                    });
+
+                if (hunter.barrack == null)
+                    return BadRequest("Bad hunter army");
+
+                var hero = await _context.Heroes.FirstOrDefaultAsync(_ => _.id == hunter.barrack.hero_id, cancellationToken);
+                if (hero == null)
+                    return BadRequest("Hero in barrack error");
+
+                var itemsId = hunter.equip?.Select(_ => _.item_id).ToList();
+                if (itemsId == null || itemsId.Count() == 0)
+                    return Ok(new
+                    {
+                        Hero = hero,
+                        Items = await items.Where(_ => _.level == 1).ToListAsync(cancellationToken),
+                        Heroes = await heroes.Where(_ => _.level == 1 || _.level < hero.level - 5).ToListAsync(cancellationToken)
+                    });
+
+                var gun = await _context.Items.Where(_ => itemsId.Contains(_.id) && _.type == "gun").FirstOrDefaultAsync(cancellationToken);
+                if (gun == null)
+                    return Ok(new
+                    {
+                        Hero = hero,
+                        Items = await items.Where(_ => _.level == 1).ToListAsync(cancellationToken),
+                        Heroes = await heroes.Where(_ => _.level == 1 || _.level < hero.level - 5).ToListAsync(cancellationToken)
+                    });
+
+                return Ok(new
+                {
+                    Hero = hero,
+                    Gun = gun,
+                    Items = await items.Where(_ => _.level == 1 || _.level < gun.level - 5).ToListAsync(),
+                    Heroes = await heroes.Where(_ => _.level == 1 || _.level < hero.level - 5).ToListAsync()
+                });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
                 return BadRequest(ex.Message);
             }
-
         }
     }
 }

@@ -13,7 +13,7 @@ namespace StatisticDbContext.Migrations
 {
     [DbContext(typeof(StatisticContext))]
     [Migration("20240731083829_army")]
-    partial class army
+    partial class Army
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

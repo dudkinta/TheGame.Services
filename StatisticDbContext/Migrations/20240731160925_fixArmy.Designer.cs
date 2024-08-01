@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StatisticDbContext;
@@ -11,9 +12,11 @@ using StatisticDbContext;
 namespace StatisticDbContext.Migrations
 {
     [DbContext(typeof(StatisticContext))]
-    partial class StatisticContextModelSnapshot : ModelSnapshot
+    [Migration("20240731160925_fixArmy")]
+    partial class fixArmy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,9 +34,6 @@ namespace StatisticDbContext.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<int>("barrack_id")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("useType")
                         .HasColumnType("integer");
 
                     b.Property<int>("user_id")

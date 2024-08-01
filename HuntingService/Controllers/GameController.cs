@@ -1,5 +1,6 @@
 ﻿using CommonLibs;
 using ExchangeData;
+using ExchangeData.Helpers;
 using ExchangeData.Interfaces;
 using ExchangeData.Models;
 using HuntingDbContext;
@@ -133,24 +134,43 @@ namespace HuntingService.Controllers
                 if (string.IsNullOrEmpty(statisticURL))
                     return NotFound("Service Statistics not found");
 
-                var getItemsEndpoint = _config.GetSection("AppSettings:GetItemsEndpoint").Value ?? string.Empty;
-                if (string.IsNullOrEmpty(getItemsEndpoint))
-                    return BadRequest("GetItemsEndpoint not found");
+                var getHunterEndpoint = _config.GetSection("AppSettings:GetHunterEndpoint").Value ?? string.Empty;
+                if (string.IsNullOrEmpty(getHunterEndpoint))
+                    return BadRequest("GetHunterEndpoint not found");
 
-                var itemsResp = await _apiClient.GetAsync<IEnumerable<InventoryModel>?>($"http://{statisticURL}/{getItemsEndpoint}?userId={userId}&itemType=gun", cancellationToken);
-                if (!itemsResp.IsSuccessStatusCode)
-                    return BadRequest(itemsResp.Error);
+                var hunterRespResp = await _apiClient.GetAsync<HuntArmyModel?>($"http://{statisticURL}/{getHunterEndpoint}?userId={userId}", cancellationToken);
+                if (!hunterRespResp.IsSuccessStatusCode)
+                    return BadRequest(hunterRespResp.Error);
 
                 var coins = aims;
-                var guns = itemsResp.Message?.Where(_ => _.item != null).Select(_ => _.item);
-                if (guns != null && guns.Count() > 0)
+                if (hunterRespResp.Message?.Gun != null)
                 {
-                    var maxLevelGun = guns.Max(_ => _!.level);
+                    var maxLevelGun = hunterRespResp.Message.Gun.level;
                     if (maxLevelGun > 0)
                         coins = aims * maxLevelGun;
                 }
-                await _messageSender.SendMessage(new FinishHuntModel { Id = userId, AddShots = shots, AddAims = aims, coins = coins }, RabbitRoutingKeys.FinishHunt, cancellationToken);
-                return Ok(new { coins = coins });
+                else
+                {
+                    coins = aims / 2;
+                }
+
+                var rand = new Random(DateTime.UtcNow.Microsecond);
+                var heroRewardCount = (int)Math.Round((0.1 * aims) * rand.NextDouble());
+                var itemRewardCount = (int)Math.Round((0.05 * aims) * rand.NextDouble());
+                IEnumerable<HeroModel>? heroRewards = null;
+                IEnumerable<ItemModel>? itemRewards = null;
+
+                if (hunterRespResp.Message != null)
+                {
+                    if (hunterRespResp.Message.RewasrdHeroes != null && hunterRespResp.Message.RewasrdHeroes.Count() > 0)
+                        heroRewards = Enumerable.Range(0, heroRewardCount).Select(_ => hunterRespResp.Message.RewasrdHeroes.GetRandomElement());
+
+                    if (hunterRespResp.Message.RewardsItems != null && hunterRespResp.Message.RewardsItems.Count() > 0)
+                        itemRewards = Enumerable.Range(0, itemRewardCount).Select(_ => hunterRespResp.Message.RewardsItems.GetRandomElement());
+                }
+
+                await _messageSender.SendMessage(new FinishHuntModel { Id = userId, AddShots = shots, AddAims = aims, coins = coins, Heroes = heroRewards, Items = itemRewards }, RabbitRoutingKeys.FinishHunt, cancellationToken);
+                return Ok(new { main_coins = coins, heroes = heroRewards, items = itemRewards });
             }
             catch (Exception ex)
             {

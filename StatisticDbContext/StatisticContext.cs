@@ -80,15 +80,14 @@ namespace StatisticDbContext
 
                 entity.Property(e => e.user_id).IsRequired();
                 entity.Property(e => e.hero_id).IsRequired();
-                entity.Property(e => e.army_id);
 
                 entity.HasOne(d => d.hero)
                       .WithMany()
                       .HasForeignKey(d => d.hero_id);
 
                 entity.HasOne(d => d.army)
-                      .WithMany()
-                      .HasForeignKey(d => d.army_id);
+                      .WithOne(a => a.barrack)
+                      .HasForeignKey<ArmyModel>(d => d.barrack_id);
             });
 
             modelBuilder.Entity<ArmyModel>(entity =>
@@ -99,9 +98,9 @@ namespace StatisticDbContext
                 entity.Property(e => e.user_id).IsRequired();
                 entity.Property(e => e.barrack_id).IsRequired();
 
-                entity.HasOne(d => d.hero)
-                      .WithMany()
-                      .HasForeignKey(d => d.barrack_id);
+                entity.HasOne(d => d.barrack)
+                      .WithOne(b => b.army)
+                      .HasForeignKey<ArmyModel>(d => d.barrack_id);
 
                 entity.HasMany(d => d.equip)
                       .WithOne(i => i.army)

@@ -65,6 +65,28 @@ namespace QueueService.Consumers
                         storage.main_coin += jObj.coins;
                         await context.SaveAsync(cancellationToken);
                     }
+                    if (jObj.Items != null && jObj.Items.Count() > 0)
+                    {
+                        foreach (var item in jObj.Items)
+                        {
+                            await context.Inventory.AddAsync(new StatisticDbContext.Models.InventoryModel()
+                            {
+                                user_id = jObj.Id,
+                                item_id = item.id
+                            });
+                        }
+                    }
+                    if (jObj.Heroes != null && jObj.Heroes.Count() > 0)
+                    {
+                        foreach (var hero in jObj.Heroes)
+                        {
+                            await context.Barracks.AddAsync(new StatisticDbContext.Models.BarrackModel()
+                            {
+                                user_id = jObj.Id,
+                                hero_id = hero.id
+                            });
+                        }
+                    }
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }
                 catch (FormatException ex)
