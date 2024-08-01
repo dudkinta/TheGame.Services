@@ -6,6 +6,6 @@
         public ItemModel? Gun { get; set; }
 
         public IEnumerable<ItemModel>? RewardsItems { get; set; }
-        public IEnumerable<HeroModel>? RewasrdHeroes { get; set; }
+        public IEnumerable<HeroModel>? RewardsHeroes { get; set; }
     }
 }

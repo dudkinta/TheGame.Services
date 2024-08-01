@@ -107,8 +107,8 @@ namespace StatisticService.Controllers
                 if (hunter == null)
                     return Ok(new
                     {
-                        Items = await items.Where(_ => _.level == 1).ToListAsync(cancellationToken),
-                        Heroes = await heroes.Where(_ => _.level == 1).ToListAsync(cancellationToken)
+                        RewardsItems = await items.Where(_ => _.level == 1).ToListAsync(cancellationToken),
+                        RewardsHeroes = await heroes.Where(_ => _.level == 1).ToListAsync(cancellationToken)
                     });
 
                 if (hunter.barrack == null)
@@ -123,8 +123,8 @@ namespace StatisticService.Controllers
                     return Ok(new
                     {
                         Hero = hero,
-                        Items = await items.Where(_ => _.level == 1).ToListAsync(cancellationToken),
-                        Heroes = await heroes.Where(_ => _.level == 1 || _.level < hero.level - 5).ToListAsync(cancellationToken)
+                        RewardsItems = await items.Where(_ => _.level == 1).ToListAsync(cancellationToken),
+                        RewardsHeroes = await heroes.Where(_ => _.level == 1 || _.level < hero.level - 5).ToListAsync(cancellationToken)
                     });
 
                 var gun = await _context.Items.Where(_ => itemsId.Contains(_.id) && _.type == "gun").FirstOrDefaultAsync(cancellationToken);
@@ -132,16 +132,16 @@ namespace StatisticService.Controllers
                     return Ok(new
                     {
                         Hero = hero,
-                        Items = await items.Where(_ => _.level == 1).ToListAsync(cancellationToken),
-                        Heroes = await heroes.Where(_ => _.level == 1 || _.level < hero.level - 5).ToListAsync(cancellationToken)
+                        RewardsItems = await items.Where(_ => _.level == 1).ToListAsync(cancellationToken),
+                        RewardsHeroes = await heroes.Where(_ => _.level == 1 || _.level < hero.level - 5).ToListAsync(cancellationToken)
                     });
 
                 return Ok(new
                 {
                     Hero = hero,
                     Gun = gun,
-                    Items = await items.Where(_ => _.level == 1 || _.level < gun.level - 5).ToListAsync(),
-                    Heroes = await heroes.Where(_ => _.level == 1 || _.level < hero.level - 5).ToListAsync()
+                    RewardsItems = await items.Where(_ => _.level == 1 || _.level < gun.level - 5).ToListAsync(),
+                    RewardsHeroes = await heroes.Where(_ => _.level == 1 || _.level < hero.level - 5).ToListAsync()
                 });
             }
             catch (Exception ex)

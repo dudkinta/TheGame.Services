@@ -155,15 +155,15 @@ namespace HuntingService.Controllers
                 }
 
                 var rand = new Random(DateTime.UtcNow.Microsecond);
-                var heroRewardCount = (int)Math.Round((0.1 * aims) * rand.NextDouble());
-                var itemRewardCount = (int)Math.Round((0.05 * aims) * rand.NextDouble());
+                var heroRewardCount = (int)(Math.Round((0.2 * aims) * rand.NextDouble()));
+                var itemRewardCount = (int)(Math.Round((0.1 * aims) * rand.NextDouble()));
                 IEnumerable<HeroModel>? heroRewards = null;
                 IEnumerable<ItemModel>? itemRewards = null;
 
                 if (hunterRespResp.Message != null)
                 {
-                    if (hunterRespResp.Message.RewasrdHeroes != null && hunterRespResp.Message.RewasrdHeroes.Count() > 0)
-                        heroRewards = Enumerable.Range(0, heroRewardCount).Select(_ => hunterRespResp.Message.RewasrdHeroes.GetRandomElement());
+                    if (hunterRespResp.Message.RewardsHeroes != null && hunterRespResp.Message.RewardsHeroes.Count() > 0)
+                        heroRewards = Enumerable.Range(0, heroRewardCount).Select(_ => hunterRespResp.Message.RewardsHeroes.GetRandomElement());
 
                     if (hunterRespResp.Message.RewardsItems != null && hunterRespResp.Message.RewardsItems.Count() > 0)
                         itemRewards = Enumerable.Range(0, itemRewardCount).Select(_ => hunterRespResp.Message.RewardsItems.GetRandomElement());
