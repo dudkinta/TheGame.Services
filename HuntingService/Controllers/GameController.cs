@@ -155,8 +155,8 @@ namespace HuntingService.Controllers
                 }
 
                 var rand = new Random(DateTime.UtcNow.Microsecond);
-                var heroRewardCount = (int)(Math.Round((0.2 * aims) * rand.NextDouble()));
-                var itemRewardCount = (int)(Math.Round((0.1 * aims) * rand.NextDouble()));
+                var heroRewardCount = (int)(Math.Round((0.05 * aims) * rand.NextDouble()));
+                var itemRewardCount = (int)(Math.Round((0.05 * aims) * rand.NextDouble()));
                 IEnumerable<HeroModel>? heroRewards = null;
                 IEnumerable<ItemModel>? itemRewards = null;
 
