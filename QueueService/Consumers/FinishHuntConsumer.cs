@@ -63,7 +63,6 @@ namespace QueueService.Consumers
                         storage.hunts++;
                         storage.shots += jObj.AddShots;
                         storage.main_coin += jObj.coins;
-                        await context.SaveAsync(cancellationToken);
                     }
                     if (jObj.Items != null && jObj.Items.Count() > 0)
                     {
@@ -87,6 +86,7 @@ namespace QueueService.Consumers
                             });
                         }
                     }
+                    await context.SaveAsync(cancellationToken);
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }
                 catch (FormatException ex)
