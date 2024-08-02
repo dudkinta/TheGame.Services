@@ -37,88 +37,96 @@ namespace LoginService.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] TWAModel twa, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(twa?.initData))
-                return BadRequest("Bad init data");
-
-            var hash = twa!.initDataUnsafe?.hash!;
-            if (string.IsNullOrEmpty(hash))
-                return BadRequest("Bad hash data");
-
-            var tokenPair = await _consulClient.KV.Get("private/gametoken");
-            if (tokenPair.Response == null)
-                return BadRequest("Key not found in Consul");
-
-            var token = Encoding.UTF8.GetString(tokenPair.Response.Value, 0, tokenPair.Response.Value.Length);
-            if (string.IsNullOrEmpty(token))
-                return BadRequest("Bad token");
-
-            var initDataList = WebUtility.UrlDecode(twa.initData)
-                .Split('&')
-                .Where(chunk => !chunk.StartsWith("hash="))
-                .Select(chunk => chunk.Split('='))
-                .OrderBy(rec => rec[0])
-                .ToList();
-
-            long referId = 0;
-            var startParam = twa!.initDataUnsafe?.start_param;
-            if (!string.IsNullOrEmpty(startParam))
+            try
             {
-                try
-                {
-                    referId = Convert.ToInt64(startParam, 16);
-                }
-                catch (Exception)
-                {
-                    return BadRequest("Error parse referal code");
-                }
-            }
+                if (string.IsNullOrEmpty(twa?.initData))
+                    return BadRequest("Bad init data");
 
-            var res = Helper.Validate(hash, initDataList, token);
-            if (res)
-            {
-                var userData = initDataList.FirstOrDefault(_ => _[0] == "user");
-                if (userData != null)
-                {
-                    var user = JsonConvert.DeserializeObject<TWAUserModel>(userData[1]);
-                    if (user == null)
-                        return BadRequest("user is null");
+                var hash = twa!.initDataUnsafe?.hash!;
+                if (string.IsNullOrEmpty(hash))
+                    return BadRequest("Bad hash data");
 
-                    var db_user = await _context.Users.FirstOrDefaultAsync(_ => _.tg_id == user.id, cancellationToken);
-                    if (db_user == null)
+                var tokenPair = await _consulClient.KV.Get("private/gametoken");
+                if (tokenPair.Response == null)
+                    return BadRequest("Key not found in Consul");
+
+                var token = Encoding.UTF8.GetString(tokenPair.Response.Value, 0, tokenPair.Response.Value.Length);
+                if (string.IsNullOrEmpty(token))
+                    return BadRequest("Bad token");
+
+                var initDataList = WebUtility.UrlDecode(twa.initData)
+                    .Split('&')
+                    .Where(chunk => !chunk.StartsWith("hash="))
+                    .Select(chunk => chunk.Split('='))
+                    .OrderBy(rec => rec[0])
+                    .ToList();
+
+                long referId = 0;
+                var startParam = twa!.initDataUnsafe?.start_param;
+                if (!string.IsNullOrEmpty(startParam))
+                {
+                    try
                     {
-                        var new_user = _context.Users.Add(new UserModel
+                        referId = Convert.ToInt64(startParam, 16);
+                    }
+                    catch (Exception)
+                    {
+                        return BadRequest("Error parse referal code");
+                    }
+                }
+
+                var res = Helper.Validate(hash, initDataList, token);
+                if (res)
+                {
+                    var userData = initDataList.FirstOrDefault(_ => _[0] == "user");
+                    if (userData != null)
+                    {
+                        var user = JsonConvert.DeserializeObject<TWAUserModel>(userData[1]);
+                        if (user == null)
+                            return BadRequest("user is null");
+
+                        var db_user = await _context.Users.FirstOrDefaultAsync(_ => _.tg_id == user.id, cancellationToken);
+                        if (db_user == null)
                         {
-                            tg_id = user.id,
-                            first_name = user.first_name,
-                            last_name = user.last_name,
-                            allows_write_to_pm = user.allows_write_to_pm,
-                            is_premium = user.is_premium,
-                            language_code = user.language_code,
-                            last_login = DateTime.UtcNow,
-                            username = user.username
-                        });
-                        await _context.SaveAsync(cancellationToken);
-                        db_user = new_user.Entity;
+                            var new_user = _context.Users.Add(new UserModel
+                            {
+                                tg_id = user.id,
+                                first_name = user.first_name,
+                                last_name = user.last_name,
+                                allows_write_to_pm = user.allows_write_to_pm,
+                                is_premium = user.is_premium,
+                                language_code = user.language_code,
+                                last_login = DateTime.UtcNow,
+                                username = user.username
+                            });
+                            await _context.SaveAsync(cancellationToken);
+                            db_user = new_user.Entity;
+                        }
+                        else
+                        {
+                            db_user.first_name = user.first_name;
+                            db_user.last_name = user.last_name;
+                            db_user.username = user.username;
+                            db_user.is_premium = user.is_premium;
+                            db_user.language_code = user.language_code;
+                            db_user.last_login = DateTime.UtcNow;
+                            await _context.SaveAsync(cancellationToken);
+                        }
+                        if (referId != 0)
+                        {
+                            await _messageSender.SendMessage(new ReferModel { Id = db_user.id, Refer_id = referId }, RabbitRoutingKeys.Referal, cancellationToken);
+                        }
+                        var jwt = _tokenService.GenerateUserToken(db_user, new TimeSpan(1, 0, 0));
+                        return Ok(new { token = jwt });
                     }
-                    else
-                    {
-                        db_user.first_name = user.first_name;
-                        db_user.last_name = user.last_name;
-                        db_user.username = user.username;
-                        db_user.is_premium = user.is_premium;
-                        db_user.language_code = user.language_code;
-                        db_user.last_login = DateTime.UtcNow;
-                        await _context.SaveAsync(cancellationToken);
-                    }
-                    if (referId != 0)
-                    {
-                        await _messageSender.SendMessage(new ReferModel { Id = db_user.id, Refer_id = referId }, RabbitRoutingKeys.Referal, cancellationToken);
-                    }
-                    var jwt = _tokenService.GenerateUserToken(db_user, new TimeSpan(1, 0, 0));
-                    return Ok(new { token = jwt });
                 }
+                return BadRequest("Bad data");
             }
-            return BadRequest("Bad data");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

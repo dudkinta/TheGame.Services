@@ -53,45 +53,53 @@ namespace FriendService.Controllers
         [HttpGet("getfriends")]
         public async Task<IActionResult> GetFriends(IInnerApiClient apiClient, ConsulServiceDiscovery serviceDiscovery, CancellationToken cancellationToken)
         {
-            var user = User;
-            var id_str = user.Claims.FirstOrDefault(_ => _.Type == "tg_id")?.Value;
-
-            if (!string.IsNullOrEmpty(id_str))
+            try
             {
-                if (long.TryParse(id_str, out long tg_id))
+                var user = User;
+                var id_str = user.Claims.FirstOrDefault(_ => _.Type == "tg_id")?.Value;
+
+                if (!string.IsNullOrEmpty(id_str))
                 {
-                    var refers = await _context.Friends.Where(_ => _.refer_id == tg_id).Select(_ => new { _.id }).ToListAsync(cancellationToken);
-                    var json = JsonConvert.SerializeObject(refers.Select(_ => _.id).ToArray());
-                    var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-                    var friendURL = await serviceDiscovery.GetServiceAddress("LoginService");
-                    if (string.IsNullOrEmpty(friendURL))
-                        return NotFound("Service Friend not found");
-
-                    var friendEndpoint = _config.GetSection("AppSettings:GetFriendNameEndpoint").Value ?? string.Empty;
-
-                    if (!string.IsNullOrEmpty(friendEndpoint))
+                    if (long.TryParse(id_str, out long tg_id))
                     {
-                        var friends = await apiClient.PostAsync<IEnumerable<FriendNamesModel>>($"http://{friendURL}/{friendEndpoint}", httpContent, cancellationToken);
-                        if (friends.IsSuccessStatusCode)
-                            return Ok(friends.Message);
+                        var refers = await _context.Friends.Where(_ => _.refer_id == tg_id).Select(_ => new { _.id }).ToListAsync(cancellationToken);
+                        var json = JsonConvert.SerializeObject(refers.Select(_ => _.id).ToArray());
+                        var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+                        var friendURL = await serviceDiscovery.GetServiceAddress("LoginService");
+                        if (string.IsNullOrEmpty(friendURL))
+                            return NotFound("Service Friend not found");
+
+                        var friendEndpoint = _config.GetSection("AppSettings:GetFriendNameEndpoint").Value ?? string.Empty;
+
+                        if (!string.IsNullOrEmpty(friendEndpoint))
+                        {
+                            var friends = await apiClient.PostAsync<IEnumerable<FriendNamesModel>>($"http://{friendURL}/{friendEndpoint}", httpContent, cancellationToken);
+                            if (friends.IsSuccessStatusCode)
+                                return Ok(friends.Message);
+                            else
+                                return BadRequest(friends.Error);
+                        }
                         else
-                            return BadRequest(friends.Error);
+                        {
+                            return BadRequest("GetFriendEndpoint not found");
+                        }
+
                     }
                     else
                     {
-                        return BadRequest("GetFriendEndpoint not found");
+                        return BadRequest("Telegram user is corrupt");
                     }
-
                 }
                 else
                 {
                     return BadRequest("Telegram user is corrupt");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("Telegram user is corrupt");
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
     }

@@ -28,16 +28,17 @@ namespace StatisticService.Controllers
         [HttpGet("check")]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {
-            var userIdStr = User.Claims.FirstOrDefault(_ => _.Type == "id")?.Value;
-            var userId = 0;
-            if (string.IsNullOrEmpty(userIdStr))
-                return BadRequest("userId not found");
-
-            if (!Int32.TryParse(userIdStr, out userId))
-                return BadRequest("userId is bad");
-
             try
             {
+                var userIdStr = User.Claims.FirstOrDefault(_ => _.Type == "id")?.Value;
+                var userId = 0;
+                if (string.IsNullOrEmpty(userIdStr))
+                    return BadRequest("userId not found");
+
+                if (!Int32.TryParse(userIdStr, out userId))
+                    return BadRequest("userId is bad");
+
+
                 var userStats = await _context.Storage.FirstOrDefaultAsync(_ => _.user_id == userId, cancellationToken);
                 if (userStats == null)
                 {
@@ -63,6 +64,7 @@ namespace StatisticService.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
                 return BadRequest(ex.Message);
             }
         }
