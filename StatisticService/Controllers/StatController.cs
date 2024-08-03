@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using CommonLibs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatisticDbContext;
@@ -12,11 +13,13 @@ namespace StatisticService.Controllers
     {
         private readonly ILogger<StatController> _logger;
         private readonly IStatisticContext _context;
+        private readonly IUserService _userService;
 
-        public StatController(ILogger<StatController> logger, IStatisticContext context)
+        public StatController(ILogger<StatController> logger, IStatisticContext context, IUserService userService)
         {
             _logger = logger;
             _context = context;
+            _userService = userService;
         }
 
         [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
@@ -25,14 +28,7 @@ namespace StatisticService.Controllers
         {
             try
             {
-                var userIdStr = User.Claims.FirstOrDefault(_ => _.Type == "id")?.Value;
-                var userId = 0;
-                if (string.IsNullOrEmpty(userIdStr))
-                    return BadRequest("userId not found");
-
-                if (!Int32.TryParse(userIdStr, out userId))
-                    return BadRequest("userId is bad");
-
+                var userId = _userService.GetUserId(User.Claims);
 
                 var userStats = await _context.Storage.FirstOrDefaultAsync(_ => _.user_id == userId, cancellationToken);
                 if (userStats == null)

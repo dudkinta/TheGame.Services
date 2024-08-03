@@ -45,6 +45,7 @@ void AddServices(IServiceCollection services, IConfiguration configuration)
     services.AddDbContext<IStatisticContext, StatisticContext>(options =>
     options.UseNpgsql(connectionString));
 
+    services.AddScoped<IUserService, UserService>();
     services.AddScoped<IInnerApiClient, InnerApiClient>();
 }
 

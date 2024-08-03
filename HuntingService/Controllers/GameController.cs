@@ -25,9 +25,10 @@ namespace HuntingService.Controllers
         private readonly IInnerApiClient _apiClient;
         private readonly IHuntingContext _context;
         private readonly ConsulServiceDiscovery _serviceDiscovery;
+        private readonly IUserService _userService;
 
         public GameController(ILogger<GameController> logger, IConfiguration config, IMessageSender messageSender, IInnerApiClient apiClient,
-            IHuntingContext context, ConsulServiceDiscovery serviceDiscovery)
+            IHuntingContext context, ConsulServiceDiscovery serviceDiscovery, IUserService userService)
         {
             _logger = logger;
             _config = config;
@@ -35,6 +36,7 @@ namespace HuntingService.Controllers
             _apiClient = apiClient;
             _context = context;
             _serviceDiscovery = serviceDiscovery;
+            _userService = userService;
         }
 
         [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
@@ -43,13 +45,7 @@ namespace HuntingService.Controllers
         {
             try
             {
-                var userIdStr = User.Claims.FirstOrDefault(_ => _.Type == "id")?.Value;
-                var userId = 0;
-                if (string.IsNullOrEmpty(userIdStr))
-                    return BadRequest("userId not found");
-
-                if (!Int32.TryParse(userIdStr, out userId))
-                    return BadRequest("userId is bad");
+                var userId = _userService.GetUserId(User.Claims);
 
                 var game = await _context.Games.FirstOrDefaultAsync(_ => _.user_id == userId && _.status == 0, cancellationToken);
                 if (game != null)
@@ -95,13 +91,7 @@ namespace HuntingService.Controllers
         {
             try
             {
-                var userIdStr = User.Claims.FirstOrDefault(_ => _.Type == "id")?.Value;
-                var userId = 0;
-                if (string.IsNullOrEmpty(userIdStr))
-                    return BadRequest("userId not found");
-
-                if (!Int32.TryParse(userIdStr, out userId))
-                    return BadRequest("userId is bad");
+                var userId = _userService.GetUserId(User.Claims);
 
                 if (string.IsNullOrEmpty(gameResult.GameId) || !Guid.TryParse(gameResult.GameId, out Guid gameGuid))
                     return BadRequest("GameId is incorrupt");

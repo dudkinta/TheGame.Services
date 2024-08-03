@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using CommonLibs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatisticDbContext;
@@ -11,11 +12,30 @@ namespace StatisticService.Controllers
     {
         private readonly ILogger<HeroesController> _logger;
         private readonly IStatisticContext _context;
+        private readonly IUserService _userService;
 
-        public HeroesController(ILogger<HeroesController> logger, IStatisticContext context)
+        public HeroesController(ILogger<HeroesController> logger, IStatisticContext context, IUserService userService)
         {
             _logger = logger;
             _context = context;
+            _userService = userService;
+        }
+
+        [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
+        [HttpGet("getheroes")]
+        public async Task<IActionResult> GetHeroes(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userId = _userService.GetUserId(User.Claims);
+                var heroes = await _context.Barracks.Include(_ => _.hero).Where(_ => _.user_id == userId).ToListAsync();
+                return Ok(heroes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize(AuthenticationSchemes = "Service", Policy = "ServicePolicy")]
