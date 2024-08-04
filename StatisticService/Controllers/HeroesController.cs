@@ -28,7 +28,9 @@ namespace StatisticService.Controllers
             try
             {
                 var userId = _userService.GetUserId(User.Claims);
-                var heroes = await _context.Barracks.Include(_ => _.army).Include(_ => _.hero).Where(_ => _.user_id == userId).ToListAsync();
+                var heroes = await _context.Barracks
+                                            .Include(_ => _.army).ThenInclude(_ => _.equip).ThenInclude(_ => _.item).Include(_ => _.hero)
+                                            .Where(_ => _.user_id == userId).ToListAsync();
                 return Ok(heroes);
             }
             catch (Exception ex)

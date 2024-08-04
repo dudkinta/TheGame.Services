@@ -9,7 +9,7 @@ namespace StatisticDbContext.Models
         public int barrack_id { get; set; }
         [JsonIgnore]
         public BarrackModel? barrack { get; set; }
-        public ICollection<InventoryModel>? equip { get; set; }
+        public ICollection<InventoryModel> equip { get; set; } = new List<InventoryModel>();
         public int useType { get; set; }
     }
 }
