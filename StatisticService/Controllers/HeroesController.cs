@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatisticDbContext;
+using StatisticDbContext.Models;
 
 namespace StatisticService.Controllers
 {
@@ -30,8 +31,43 @@ namespace StatisticService.Controllers
                 var userId = _userService.GetUserId(User.Claims);
                 var heroes = await _context.Barracks
                                             .Include(_ => _.army).ThenInclude(_ => _.equip).ThenInclude(_ => _.item).Include(_ => _.hero)
-                                            .Where(_ => _.user_id == userId).ToListAsync();
+                                            .Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
                 return Ok(heroes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
+        [HttpPut("sethunter")]
+        public async Task<IActionResult> SetHunter(int heroId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userId = _userService.GetUserId(User.Claims);
+                var barrack = await _context.Barracks.FirstOrDefaultAsync(_ => _.user_id == userId && _.id == heroId, cancellationToken);
+                var currentHunter = await _context.Armies.Include(_ => _.barrack).FirstOrDefaultAsync(_ => _.user_id == userId && _.useType == 1, cancellationToken);
+                if (currentHunter == null)
+                {
+                    var army = new ArmyModel()
+                    {
+                        barrack = barrack,
+                        barrack_id = heroId,
+                        useType = 1,
+                        user_id = userId,
+                    };
+                    await _context.Armies.AddAsync(army, cancellationToken);
+                }
+                else
+                {
+                    currentHunter.barrack = barrack;
+                    currentHunter.barrack_id = heroId;
+                }
+                await _context.SaveAsync(cancellationToken);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -46,7 +82,7 @@ namespace StatisticService.Controllers
         {
             try
             {
-                var hunter = await _context.Armies.Include(_ => _.barrack).Include(_ => _.equip).Where(_ => _.user_id == userId && _.useType == 1).FirstOrDefaultAsync(cancellationToken);
+                var hunter = await _context.Armies.Include(_ => _.barrack).Include(_ => _.equip).FirstOrDefaultAsync(_ => _.user_id == userId && _.useType == 1, cancellationToken);
                 var items = _context.Items;
                 var heroes = _context.Heroes;
                 if (hunter == null)
