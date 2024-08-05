@@ -38,10 +38,15 @@ namespace CommonLibs
                     DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(1)
                 }
             };
-
-            await _consulClient.Agent.ServiceRegister(registration, cancellationToken);
-            _timer = new Timer(UpdateTTL!, null, TimeSpan.Zero, TimeSpan.FromSeconds(25));
-
+            try
+            {
+                await _consulClient.Agent.ServiceRegister(registration, cancellationToken);
+                _timer = new Timer(UpdateTTL!, null, TimeSpan.Zero, TimeSpan.FromSeconds(25));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
             _hostApplicationLifetime.ApplicationStopping.Register(() =>
             {
                 _consulClient.Agent.ServiceDeregister(_registrationId).Wait();
@@ -57,8 +62,15 @@ namespace CommonLibs
         private async void UpdateTTL(object state)
         {
             var ttlCheckId = $"service:{_registrationId}";
-            await _consulClient.Agent.PassTTL(ttlCheckId, "Service is healthy");
-            _logger.LogInformation("Service {ServiceId} TTL check updated successfully.", _registrationId);
+            try
+            {
+                await _consulClient.Agent.PassTTL(ttlCheckId, "Service is healthy");
+                _logger.LogInformation("Service {ServiceId} TTL check updated successfully.", _registrationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
         }
 
         public void Dispose()

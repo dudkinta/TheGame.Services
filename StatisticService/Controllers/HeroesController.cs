@@ -76,6 +76,50 @@ namespace StatisticService.Controllers
             }
         }
 
+        [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
+        [HttpGet("mergeheroes")]
+        public async Task<IActionResult> MergeHeroes(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userId = _userService.GetUserId(User.Claims);
+                var нeroes = await _context.Barracks.Include(_ => _.hero).Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
+                var groupedHeroes = нeroes
+                    .GroupBy(h => h.hero!.id)
+                    .Where(g => g.Count() >= 3)
+                    .OrderBy(g => g.Key).ToList();
+                foreach (var group in groupedHeroes)
+                {
+                    var blankHero = group.FirstOrDefault(_ => _.army != null);
+                    if (blankHero == null)
+                    {
+                        blankHero = group.FirstOrDefault();
+                    }
+                    if (blankHero != null)
+                    {
+                        foreach (var item in group)
+                        {
+                            if (item != blankHero)
+                                _context.Barracks.Remove(item);
+                        }
+                        var nextHero = await _context.Heroes.FirstOrDefaultAsync(_ => _.level == blankHero.hero!.level + 1 && _.type == blankHero.hero.type, cancellationToken);
+                        if (nextHero != null)
+                        {
+                            blankHero.hero = nextHero;
+                            blankHero.hero_id = nextHero.id;
+                            await _context.SaveAsync(cancellationToken);
+                        }
+                    }
+                }
+                return Ok(groupedHeroes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
         [Authorize(AuthenticationSchemes = "Service", Policy = "ServicePolicy")]
         [HttpGet("gethunter")]
         public async Task<IActionResult> GetHunter(int userId, CancellationToken cancellationToken)
