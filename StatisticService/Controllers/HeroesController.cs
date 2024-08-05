@@ -88,30 +88,37 @@ namespace StatisticService.Controllers
                     .GroupBy(h => h.hero!.id)
                     .Where(g => g.Count() >= 3)
                     .OrderBy(g => g.Key).ToList();
-                foreach (var group in groupedHeroes)
+                if (groupedHeroes.Count() > 0)
                 {
-                    var blankHero = group.FirstOrDefault(_ => _.army != null);
-                    if (blankHero == null)
+                    foreach (var group in groupedHeroes)
                     {
-                        blankHero = group.FirstOrDefault();
-                    }
-                    if (blankHero != null)
-                    {
-                        foreach (var item in group)
+                        var blankHero = group.FirstOrDefault(_ => _.army != null);
+                        if (blankHero == null)
                         {
-                            if (item != blankHero)
-                                _context.Barracks.Remove(item);
+                            blankHero = group.FirstOrDefault();
                         }
-                        var nextHero = await _context.Heroes.FirstOrDefaultAsync(_ => _.level == blankHero.hero!.level + 1 && _.type == blankHero.hero.type, cancellationToken);
-                        if (nextHero != null)
+                        if (blankHero != null)
                         {
-                            blankHero.hero = nextHero;
-                            blankHero.hero_id = nextHero.id;
-                            await _context.SaveAsync(cancellationToken);
+                            foreach (var item in group)
+                            {
+                                if (item != blankHero)
+                                    _context.Barracks.Remove(item);
+                            }
+                            var nextHero = await _context.Heroes.FirstOrDefaultAsync(_ => _.level == blankHero.hero!.level + 1 && _.type == blankHero.hero.type, cancellationToken);
+                            if (nextHero != null)
+                            {
+                                blankHero.hero = nextHero;
+                                blankHero.hero_id = nextHero.id;
+
+                            }
                         }
                     }
+                    await _context.SaveAsync(cancellationToken);
                 }
-                return Ok(groupedHeroes);
+                var heroes = await _context.Barracks
+                                            .Include(_ => _.army).ThenInclude(_ => _.equip).ThenInclude(_ => _.item).Include(_ => _.hero)
+                                            .Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
+                return Ok(heroes);
             }
             catch (Exception ex)
             {
