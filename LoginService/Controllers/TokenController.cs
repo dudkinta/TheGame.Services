@@ -46,7 +46,7 @@ namespace LoginService.Controllers
                 if (string.IsNullOrEmpty(hash))
                     return BadRequest("Bad hash data");
 
-                var tokenPair = await _consulClient.KV.Get("private/gametoken");
+                var tokenPair = await _consulClient.KV.Get("thegame/private/gametoken");
                 if (tokenPair.Response == null)
                     return BadRequest("Key not found in Consul");
 

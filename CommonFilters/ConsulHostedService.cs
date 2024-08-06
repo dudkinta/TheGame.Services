@@ -20,7 +20,7 @@ namespace CommonLibs
             _consulClient = consulClient;
             _hostApplicationLifetime = hostApplicationLifetime;
             _serviceConfiguration = serviceConfiguration;
-            _registrationId = $"{_serviceConfiguration.Name}-{Dns.GetHostName()}-{Guid.NewGuid()}";
+            _registrationId = $"{_serviceConfiguration.ServiceName}-{Dns.GetHostName()}-{Guid.NewGuid()}";
             _logger = logger;
         }
 
@@ -29,7 +29,7 @@ namespace CommonLibs
             var registration = new AgentServiceRegistration
             {
                 ID = _registrationId,
-                Name = _serviceConfiguration.Name,
+                Name = _serviceConfiguration.ServiceName,
                 Address = _serviceConfiguration.Address,
                 Port = _serviceConfiguration.Port,
                 Check = new AgentServiceCheck

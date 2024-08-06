@@ -23,6 +23,7 @@ namespace StatisticService.Controllers
 
         [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
         [HttpGet("getarmy")]
+        [Obsolete]
         public async Task<IActionResult> GetArmy(int armyId, CancellationToken cancellationToken)
         {
             try

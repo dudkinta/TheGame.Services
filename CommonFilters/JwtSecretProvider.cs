@@ -24,7 +24,7 @@ namespace CommonLibs
 
         public string GetSecretKey(string key)
         {
-            return GetSecretKeyAsync(key).GetAwaiter().GetResult();
+            return GetSecretKeyAsync("thegame/" + key).GetAwaiter().GetResult();
         }
     }
 }

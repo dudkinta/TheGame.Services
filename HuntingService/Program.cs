@@ -100,22 +100,18 @@ void AddAuthorize(IServiceCollection services)
 
 void RegistrationConsul(IServiceCollection services, IConfiguration configuration)
 {
-    var consulConfigSection = configuration.GetSection("AppSettings:Consul");
-    var consulServiceConfig = new ConsulServiceConfiguration
+    var consulServiceConfig = configuration.GetSection("AppSettings:Consul").Get<ConsulServiceConfiguration>();
+    if (consulServiceConfig != null)
     {
-        Name = consulConfigSection.GetValue<string>("ServiceName")!,
-        Address = consulConfigSection.GetValue<string>("Address")!,
-        Port = consulConfigSection.GetValue<int>("Port")!,
-    };
+        services.AddSingleton(consulServiceConfig);
 
-    services.AddSingleton(consulServiceConfig);
-
-    //Consul client
-    var consulEndpoint = configuration.GetSection("AppSettings:ConsulEndpoint").Value ?? string.Empty;
-    services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(cfg =>
-    {
-        cfg.Address = new Uri(consulEndpoint);
-    }));
-    services.AddHostedService<ConsulHostedService>();
-    services.AddTransient<ConsulServiceDiscovery>();
+        //Consul client
+        services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(cfg =>
+        {
+            cfg.Address = new Uri(consulServiceConfig.Endpoint);
+            cfg.Token = consulServiceConfig.Token;
+        }));
+        services.AddHostedService<ConsulHostedService>();
+        services.AddTransient<ConsulServiceDiscovery>();
+    }
 }
