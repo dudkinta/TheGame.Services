@@ -74,7 +74,7 @@ namespace StatisticService.Controllers
             try
             {
                 var userId = _userService.GetUserId(User.Claims);
-                var invItem = await _context.Inventory.FirstOrDefaultAsync(_ => _.user_id == userId && _.id == changeItem.item_id, cancellationToken);
+                var invItem = await _context.Inventory.Include(_ => _.item).FirstOrDefaultAsync(_ => _.user_id == userId && _.id == changeItem.item_id, cancellationToken);
                 if (invItem == null)
                     return BadRequest("Not Item NotFound");
 
