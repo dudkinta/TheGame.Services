@@ -57,8 +57,10 @@ namespace StatisticService.Controllers
                 }
                 invItem.army_id = changeItem.army_id;
                 await _context.SaveAsync(cancellationToken);
-                var inventory = await _context.Inventory.Include(_ => _.item).Where(_ => _.user_id == userId && _.item!.type == invItem.item!.type).ToListAsync(cancellationToken);
-                return Ok(inventory);
+                var heroes = await _context.Barracks
+                                            .Include(_ => _.army).ThenInclude(_ => _.equip).ThenInclude(_ => _.item).Include(_ => _.hero)
+                                            .Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
+                return Ok(heroes);
             }
             catch (Exception ex)
             {
@@ -80,8 +82,10 @@ namespace StatisticService.Controllers
 
                 invItem.army_id = null;
                 await _context.SaveAsync(cancellationToken);
-                var inventory = await _context.Inventory.Include(_ => _.item).Where(_ => _.user_id == userId && _.item!.type == invItem.item!.type).ToListAsync(cancellationToken);
-                return Ok(inventory);
+                var heroes = await _context.Barracks
+                                            .Include(_ => _.army).ThenInclude(_ => _.equip).ThenInclude(_ => _.item).Include(_ => _.hero)
+                                            .Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
+                return Ok(heroes);
             }
             catch (Exception ex)
             {
