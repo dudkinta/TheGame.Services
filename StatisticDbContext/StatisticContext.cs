@@ -11,7 +11,8 @@ namespace StatisticDbContext
         public DbSet<InventoryModel> Inventory { get; set; }
         public DbSet<BarrackModel> Barracks { get; set; }
         public DbSet<ArmyModel> Armies { get; set; }
-
+        public DbSet<RecipeModel> Recipes { get; set; }
+        public DbSet<RecipeIngredientModel> RecipeIngredients { get; set; }
         public StatisticContext(DbContextOptions<StatisticContext> options)
             : base(options)
         {
@@ -64,13 +65,13 @@ namespace StatisticDbContext
                 entity.Property(e => e.item_id).IsRequired();
                 entity.Property(e => e.army_id);
 
-                entity.HasOne(d => d.item)
+                entity.HasOne(e => e.item)
                       .WithMany()
-                      .HasForeignKey(d => d.item_id);
+                      .HasForeignKey(e => e.item_id);
 
-                entity.HasOne(d => d.army)
-                      .WithMany(a => a.equip)
-                      .HasForeignKey(d => d.army_id);
+                entity.HasOne(e => e.army)
+                      .WithMany(e => e.equip)
+                      .HasForeignKey(e => e.army_id);
             });
 
             modelBuilder.Entity<BarrackModel>(entity =>
@@ -81,13 +82,13 @@ namespace StatisticDbContext
                 entity.Property(e => e.user_id).IsRequired();
                 entity.Property(e => e.hero_id).IsRequired();
 
-                entity.HasOne(d => d.hero)
+                entity.HasOne(e => e.hero)
                       .WithMany()
-                      .HasForeignKey(d => d.hero_id);
+                      .HasForeignKey(e => e.hero_id);
 
-                entity.HasOne(d => d.army)
-                      .WithOne(a => a.barrack)
-                      .HasForeignKey<ArmyModel>(d => d.barrack_id);
+                entity.HasOne(e => e.army)
+                      .WithOne(e => e.barrack)
+                      .HasForeignKey<ArmyModel>(e => e.barrack_id);
             });
 
             modelBuilder.Entity<ArmyModel>(entity =>
@@ -98,13 +99,31 @@ namespace StatisticDbContext
                 entity.Property(e => e.user_id).IsRequired();
                 entity.Property(e => e.barrack_id).IsRequired();
 
-                entity.HasOne(d => d.barrack)
-                      .WithOne(b => b.army)
-                      .HasForeignKey<ArmyModel>(d => d.barrack_id);
+                entity.HasOne(e => e.barrack)
+                      .WithOne(e => e.army)
+                      .HasForeignKey<ArmyModel>(e => e.barrack_id);
 
-                entity.HasMany(d => d.equip)
-                      .WithOne(i => i.army)
-                      .HasForeignKey(i => i.army_id);
+                entity.HasMany(e => e.equip)
+                      .WithOne(e => e.army)
+                      .HasForeignKey(e => e.army_id);
+            });
+
+            modelBuilder.Entity<RecipeModel>(entity =>
+            {
+                entity.ToTable("recipes");
+                entity.HasKey(e => e.RecipeID);
+                entity.HasMany(e => e.Ingredients)
+                      .WithOne(e => e.Recipe)
+                      .HasForeignKey(e => e.RecipeID);
+            });
+
+            modelBuilder.Entity<RecipeIngredientModel>(entity =>
+            {
+                entity.ToTable("ingredients");
+                entity.HasKey(e => new { e.RecipeID, e.IngredientItemID });
+                entity.HasOne(e => e.IngredientItem)
+                      .WithMany()
+                      .HasForeignKey(e => e.IngredientItemID);
             });
         }
     }
