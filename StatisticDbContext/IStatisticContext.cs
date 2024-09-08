@@ -13,6 +13,7 @@ namespace StatisticDbContext
         DbSet<ArmyModel> Armies { get; set; }
         DbSet<RecipeModel> Recipes { get; set; }
         DbSet<RecipeIngredientModel> RecipeIngredients { get; set; }
+        DbSet<CraftModel> Crafts { get; set; }
         Task<int> SaveAsync(CancellationToken cancellationToken);
     }
 }

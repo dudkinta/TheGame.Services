@@ -2,15 +2,15 @@
 {
     public class RecipeModel
     {
-        public int RecipeID { get; set; }
+        public int id { get; set; }
 
-        public int ItemID { get; set; }
-        public ItemModel? Item { get; set; }
+        public int item_id { get; set; }
+        public ItemModel? item { get; set; }
 
-        public int CraftTime { get; set; }
+        public int craft_time { get; set; }
 
-        public string CraftingStation { get; set; } = string.Empty;
+        public string crafting_station { get; set; } = string.Empty;
 
-        public ICollection<RecipeIngredientModel>? Ingredients { get; set; }
+        public ICollection<RecipeIngredientModel> ingredients { get; set; } = new List<RecipeIngredientModel>();
     }
 }

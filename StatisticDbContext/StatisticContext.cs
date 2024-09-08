@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StatisticDbContext.Models;
+using StatisticDbContext.Seeds;
 
 namespace StatisticDbContext
 {
@@ -13,6 +14,8 @@ namespace StatisticDbContext
         public DbSet<ArmyModel> Armies { get; set; }
         public DbSet<RecipeModel> Recipes { get; set; }
         public DbSet<RecipeIngredientModel> RecipeIngredients { get; set; }
+        public DbSet<CraftModel> Crafts { get; set; }
+
         public StatisticContext(DbContextOptions<StatisticContext> options)
             : base(options)
         {
@@ -111,20 +114,39 @@ namespace StatisticDbContext
             modelBuilder.Entity<RecipeModel>(entity =>
             {
                 entity.ToTable("recipes");
-                entity.HasKey(e => e.RecipeID);
-                entity.HasMany(e => e.Ingredients)
-                      .WithOne(e => e.Recipe)
-                      .HasForeignKey(e => e.RecipeID);
+                entity.HasKey(e => e.id);
+                entity.HasMany(e => e.ingredients)
+                      .WithOne(e => e.recipe)
+                      .HasForeignKey(e => e.ingredient_id);
             });
 
             modelBuilder.Entity<RecipeIngredientModel>(entity =>
             {
                 entity.ToTable("ingredients");
-                entity.HasKey(e => new { e.RecipeID, e.IngredientItemID });
-                entity.HasOne(e => e.IngredientItem)
+                entity.HasKey(e => new { e.recipe_id, e.ingredient_id });
+                entity.Property(e => e.quantity).IsRequired();
+                entity.HasOne(e => e.ingredient)
                       .WithMany()
-                      .HasForeignKey(e => e.IngredientItemID);
+                      .HasForeignKey(e => e.ingredient_id);
             });
+
+            modelBuilder.Entity<CraftModel>(entity =>
+            {
+                entity.ToTable("crafts");
+                entity.HasKey(e => e.id);
+                entity.Property(e => e.id).IsRequired();
+                entity.Property(e => e.user_id).IsRequired();
+                entity.Property(e => e.recire_id).IsRequired();
+                entity.HasOne(e => e.recipe)
+                      .WithMany()
+                      .HasForeignKey(e => e.recire_id);
+                entity.Property(e => e.dt_end).IsRequired();
+            });
+
+            HeroSeedData.Seed(modelBuilder);
+            ItemsSeedData.Seed(modelBuilder);
+            RecipesSeedData.Seed(modelBuilder);
+            RecipeIngredientSeedData.Seed(modelBuilder);
         }
     }
 }

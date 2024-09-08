@@ -1,13 +1,16 @@
-﻿namespace StatisticDbContext.Models
+﻿using System.Text.Json.Serialization;
+
+namespace StatisticDbContext.Models
 {
     public class RecipeIngredientModel
     {
-        public int RecipeID { get; set; }
-        public RecipeModel Recipe { get; set; }
+        public int recipe_id { get; set; }
+        [JsonIgnore]
+        public RecipeModel recipe { get; set; }
 
-        public int IngredientItemID { get; set; }
-        public ItemModel IngredientItem { get; set; }
+        public int ingredient_id { get; set; }
+        public ItemModel ingredient { get; set; }
 
-        public int Quantity { get; set; }
+        public int quantity { get; set; }
     }
 }
