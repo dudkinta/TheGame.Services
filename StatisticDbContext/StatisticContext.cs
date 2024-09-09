@@ -115,9 +115,20 @@ namespace StatisticDbContext
             {
                 entity.ToTable("recipes");
                 entity.HasKey(e => e.id);
+                entity.Property(e => e.id).HasColumnName("id").IsRequired().ValueGeneratedOnAdd();
+                entity.Property(e => e.item_id).HasColumnName("item_id").IsRequired();
+                entity.Property(e => e.craft_time).HasColumnName("craft_time").IsRequired();
+                entity.Property(e => e.crafting_station).HasColumnName("crafting_station").HasMaxLength(255).IsRequired();
+                entity.HasOne(e => e.item)
+                      .WithMany()
+                      .HasForeignKey(e => e.item_id)
+                      .HasConstraintName("FK_recipes_items_item_id")
+                      .OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(e => e.ingredients)
                       .WithOne(e => e.recipe)
-                      .HasForeignKey(e => e.ingredient_id);
+                      .HasForeignKey(e => e.recipe_id)
+                      .HasConstraintName("FK_recipe_ingredients_recipes_recipe_id")
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<RecipeIngredientModel>(entity =>

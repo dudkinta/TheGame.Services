@@ -912,26 +912,28 @@ namespace StatisticDbContext.Migrations
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<int>("craft_time")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("craft_time");
 
                     b.Property<string>("crafting_station")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("crafting_station");
 
                     b.Property<int>("item_id")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("itemid")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("item_id");
 
                     b.HasKey("id");
 
-                    b.HasIndex("itemid");
+                    b.HasIndex("item_id");
 
                     b.ToTable("recipes", (string)null);
 
@@ -1073,9 +1075,10 @@ namespace StatisticDbContext.Migrations
 
                     b.HasOne("StatisticDbContext.Models.RecipeModel", "recipe")
                         .WithMany("ingredients")
-                        .HasForeignKey("ingredient_id")
+                        .HasForeignKey("recipe_id")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("FK_recipe_ingredients_recipes_recipe_id");
 
                     b.Navigation("ingredient");
 
@@ -1086,7 +1089,10 @@ namespace StatisticDbContext.Migrations
                 {
                     b.HasOne("StatisticDbContext.Models.ItemModel", "item")
                         .WithMany()
-                        .HasForeignKey("itemid");
+                        .HasForeignKey("item_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_recipes_items_item_id");
 
                     b.Navigation("item");
                 });
