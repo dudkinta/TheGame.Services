@@ -36,4 +36,5 @@ void AddConsumers(IServiceCollection services, IConfiguration configuration)
 
     services.AddSingleton<IHostedService, ReferalConsumer>();
     services.AddSingleton<IHostedService, FinishHuntConsumer>();
+    services.AddSingleton<IHostedService, CraftConsumer>();
 }

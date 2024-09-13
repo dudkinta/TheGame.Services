@@ -6,7 +6,8 @@ namespace ExchangeData
     {
         [Display(Name = "Referal")]
         Referal,
-
+        [Display(Name = "Craft")]
+        Craft,
         [Display(Name = "FinishHunt")]
         FinishHunt
     }
