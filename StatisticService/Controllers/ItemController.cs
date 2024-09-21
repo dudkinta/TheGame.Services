@@ -64,7 +64,7 @@ namespace StatisticService.Controllers
             {
                 var userId = _userService.GetUserId(User.Claims);
                 var invItem = await _context.Inventory.Include(_ => _.item).FirstOrDefaultAsync(_ => _.user_id == userId && _.id == changeItem.item_id, cancellationToken);
-                if (invItem == null)
+                if (invItem == null || invItem.item == null)
                     return BadRequest("Not Item NotFound");
 
                 var currentItem = await _context.Inventory.Include(_ => _.item).FirstOrDefaultAsync(_ => _.user_id == userId && _.army_id == changeItem.army_id && _.item!.type == invItem.item!.type, cancellationToken);
@@ -74,10 +74,11 @@ namespace StatisticService.Controllers
                 }
                 invItem.army_id = changeItem.army_id;
                 await _context.SaveAsync(cancellationToken);
-                var heroes = await _context.Barracks
-                                            .Include(_ => _.army).ThenInclude(_ => _.equip).ThenInclude(_ => _.item).Include(_ => _.hero)
-                                            .Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
-                return Ok(heroes);
+                var inventory = await _context.Inventory.Include(_ => _.item).Where(_ => _.user_id == userId && _.item!.type == invItem.item!.type).ToListAsync(cancellationToken);
+                //var heroes = await _context.Barracks
+                //                            .Include(_ => _.army).ThenInclude(_ => _.equip).ThenInclude(_ => _.item).Include(_ => _.hero)
+                //                            .Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
+                return Ok(inventory);
             }
             catch (Exception ex)
             {
@@ -94,15 +95,16 @@ namespace StatisticService.Controllers
             {
                 var userId = _userService.GetUserId(User.Claims);
                 var invItem = await _context.Inventory.Include(_ => _.item).FirstOrDefaultAsync(_ => _.user_id == userId && _.id == changeItem.item_id, cancellationToken);
-                if (invItem == null)
+                if (invItem == null || invItem.item == null)
                     return BadRequest("Not Item NotFound");
 
                 invItem.army_id = null;
                 await _context.SaveAsync(cancellationToken);
-                var heroes = await _context.Barracks
-                                            .Include(_ => _.army).ThenInclude(_ => _.equip).ThenInclude(_ => _.item).Include(_ => _.hero)
-                                            .Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
-                return Ok(heroes);
+                var inventory = await _context.Inventory.Include(_ => _.item).Where(_ => _.user_id == userId && _.item!.type == invItem.item!.type).ToListAsync(cancellationToken);
+                //var heroes = await _context.Barracks
+                //                            .Include(_ => _.army).ThenInclude(_ => _.equip).ThenInclude(_ => _.item).Include(_ => _.hero)
+                //                            .Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
+                return Ok(inventory);
             }
             catch (Exception ex)
             {
