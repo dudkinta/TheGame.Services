@@ -23,7 +23,7 @@ namespace StatisticService.Controllers
         }
 
         [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
-        [HttpGet("getitems")]
+        [HttpGet("getallitems")]
         public async Task<IActionResult> GetItems(CancellationToken cancellationToken)
         {
             try
