@@ -29,7 +29,7 @@ namespace StatisticService.Controllers
             try
             {
                 var userId = _userService.GetUserId(User.Claims);
-                var inventory = await _context.Inventory.Include(_ => _.item).Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
+                var inventory = await _context.Inventory.Include(_ => _.item).Where(_ => _.user_id == userId && _.army_id == null).ToListAsync(cancellationToken);
                 return Ok(inventory);
             }
             catch (Exception ex)

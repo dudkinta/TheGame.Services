@@ -53,7 +53,7 @@ namespace StatisticService.Controllers
 
                 var userId = _userService.GetUserId(User.Claims);
                 var ingridients = recipe.ingredients.ToDictionary(_ => _.ingredient_id, __ => __.quantity);
-                var userIngridients = await _context.Inventory.Where(_ => _.user_id == userId).GroupBy(_ => _.item_id).ToDictionaryAsync(g => g.Key, g => g.Count(), cancellationToken);
+                var userIngridients = await _context.Inventory.Where(_ => _.user_id == userId && _.army_id == null).GroupBy(_ => _.item_id).ToDictionaryAsync(g => g.Key, g => g.Count(), cancellationToken);
                 bool hasAllIngredients = ingridients.All(ingredient =>
                         userIngridients.TryGetValue(ingredient.Key, out int userQuantity) && userQuantity >= ingredient.Value);
                 if (!hasAllIngredients)
