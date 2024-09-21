@@ -24,6 +24,23 @@ namespace StatisticService.Controllers
 
         [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
         [HttpGet("getitems")]
+        public async Task<IActionResult> GetItems(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userId = _userService.GetUserId(User.Claims);
+                var inventory = await _context.Inventory.Include(_ => _.item).Where(_ => _.user_id == userId).ToListAsync(cancellationToken);
+                return Ok(inventory);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
+        [HttpGet("getitems")]
         public async Task<IActionResult> GetItems(string itemType, CancellationToken cancellationToken)
         {
             try
