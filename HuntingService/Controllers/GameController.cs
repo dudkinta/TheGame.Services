@@ -147,16 +147,16 @@ namespace HuntingService.Controllers
                 var rand = new Random(DateTime.UtcNow.Microsecond);
                 var heroRewardCount = (int)(Math.Round((0.05 * aims) * rand.NextDouble()));
                 var itemRewardCount = (int)(Math.Round((0.05 * aims) * rand.NextDouble()));
-                IEnumerable<HeroModel>? heroRewards = null;
-                IEnumerable<ItemModel>? itemRewards = null;
+                List<HeroModel> heroRewards = new List<HeroModel>();
+                List<ItemModel> itemRewards = new List<ItemModel>();
 
                 if (hunterRespResp.Message != null)
                 {
                     if (hunterRespResp.Message.RewardsHeroes != null && hunterRespResp.Message.RewardsHeroes.Count() > 0)
-                        heroRewards = Enumerable.Range(0, heroRewardCount).Select(_ => hunterRespResp.Message.RewardsHeroes.GetRandomElement());
+                        heroRewards = Enumerable.Range(0, heroRewardCount).Select(_ => hunterRespResp.Message.RewardsHeroes.GetRandomElement()).ToList();
 
                     if (hunterRespResp.Message.RewardsItems != null && hunterRespResp.Message.RewardsItems.Count() > 0)
-                        itemRewards = Enumerable.Range(0, itemRewardCount).Select(_ => hunterRespResp.Message.RewardsItems.GetRandomElement());
+                        itemRewards = Enumerable.Range(0, itemRewardCount).Select(_ => hunterRespResp.Message.RewardsItems.GetRandomElement()).ToList();
                 }
 
                 var reward = new FinishHuntModel { Id = userId, Guid = Guid.NewGuid().ToString(), AddShots = shots, AddAims = aims, coins = coins, Heroes = heroRewards, Items = itemRewards };
