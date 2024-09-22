@@ -46,7 +46,7 @@ namespace QueueService.Consumers
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                _logger.LogInformation($"[FinishHuntConsumer] Received {message}");
+                //_logger.LogInformation($"[FinishHuntConsumer] Received {message}");
 
                 try
                 {
@@ -56,7 +56,7 @@ namespace QueueService.Consumers
                     if (jObj == null)
                         throw new FormatException("HuntResultModel not deserialized");
 
-                    _logger.LogInformation(message);
+                    _logger.LogInformation("Message: {@jObj}", jObj);
 
                     var storage = await context.Storage.FirstOrDefaultAsync(_ => _.user_id == jObj.Id);
                     if (storage != null)
