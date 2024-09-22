@@ -56,6 +56,8 @@ namespace QueueService.Consumers
                     if (jObj == null)
                         throw new FormatException("HuntResultModel not deserialized");
 
+                    _logger.LogInformation("Receive message: {@jObj}", jObj);
+
                     var storage = await context.Storage.FirstOrDefaultAsync(_ => _.user_id == jObj.Id);
                     if (storage != null)
                     {

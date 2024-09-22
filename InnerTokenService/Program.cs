@@ -5,7 +5,7 @@ using InnerTokenService.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Serilog;
-using Serilog.Formatting.Compact;
+using Serilog.Formatting.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 AddLogger(builder.Logging);
@@ -30,7 +30,7 @@ void AddLogger(ILoggingBuilder logging)
     .Enrich.WithMachineName()
     .WriteTo.Http("http://localhost:5044",
                  queueLimitBytes: null,
-                 textFormatter: new CompactJsonFormatter())
+                 textFormatter: new JsonFormatter())
     .CreateLogger();
 
     logging.ClearProviders();

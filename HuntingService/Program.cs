@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Serilog;
-using Serilog.Formatting.Compact;
+using Serilog.Formatting.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +41,7 @@ void AddLogger(ILoggingBuilder logging)
     .Enrich.WithMachineName()
     .WriteTo.Http("http://localhost:5044",
                  queueLimitBytes: null,
-                 textFormatter: new CompactJsonFormatter())
+                 textFormatter: new JsonFormatter())
     .CreateLogger();
 
     logging.ClearProviders();

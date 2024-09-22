@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using QueueService;
 using QueueService.Consumers;
 using Serilog;
-using Serilog.Formatting.Compact;
+using Serilog.Formatting.Json;
 using StatisticDbContext;
 
 
@@ -26,7 +26,7 @@ void AddLogger(ILoggingBuilder logging)
     .Enrich.WithMachineName()
     .WriteTo.Http("http://localhost:5044",
                  queueLimitBytes: null,
-                 textFormatter: new CompactJsonFormatter())
+                 textFormatter: new JsonFormatter())
     .CreateLogger();
 
     logging.ClearProviders();

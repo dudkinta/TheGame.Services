@@ -65,7 +65,6 @@ namespace CommonLibs
             try
             {
                 await _consulClient.Agent.PassTTL(ttlCheckId, "Service is healthy");
-                _logger.LogInformation("Service {ServiceId} TTL check updated successfully.", _registrationId);
             }
             catch (Exception ex)
             {
