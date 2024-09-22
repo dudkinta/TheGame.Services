@@ -159,7 +159,10 @@ namespace HuntingService.Controllers
                         itemRewards = Enumerable.Range(0, itemRewardCount).Select(_ => hunterRespResp.Message.RewardsItems.GetRandomElement());
                 }
 
-                await _messageSender.SendMessage(new FinishHuntModel { Id = userId, AddShots = shots, AddAims = aims, coins = coins, Heroes = heroRewards, Items = itemRewards }, RabbitRoutingKeys.FinishHunt, cancellationToken);
+                var reward = new FinishHuntModel { Id = userId, AddShots = shots, AddAims = aims, coins = coins, Heroes = heroRewards, Items = itemRewards };
+                _logger.LogInformation("Reward created: {@Reward}", reward);
+
+                await _messageSender.SendMessage(reward, RabbitRoutingKeys.FinishHunt, cancellationToken);
                 return Ok(new { main_coins = coins, heroes = heroRewards, items = itemRewards });
             }
             catch (Exception ex)

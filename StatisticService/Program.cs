@@ -8,10 +8,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using Serilog;
+using Serilog.Formatting.Compact;
 using StatisticDbContext;
 
 var builder = WebApplication.CreateBuilder(args);
-
+AddLogger(builder.Logging);
 AddFilters(builder.Services);
 AddServices(builder.Services, builder.Configuration);
 AddRabbitMQSender(builder.Services, builder.Configuration);
@@ -30,7 +32,19 @@ app.MapControllers();
 
 app.Run();
 
+void AddLogger(ILoggingBuilder logging)
+{
+    Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .WriteTo.Http("http://localhost:5044",
+                 queueLimitBytes: null,
+                 textFormatter: new CompactJsonFormatter())
+    .CreateLogger();
 
+    logging.ClearProviders();
+    logging.AddSerilog(Log.Logger);
+}
 void AddFilters(IServiceCollection services)
 {
     services.AddControllers(options =>

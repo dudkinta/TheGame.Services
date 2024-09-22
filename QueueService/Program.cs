@@ -3,11 +3,13 @@ using FriendDbContex;
 using Microsoft.EntityFrameworkCore;
 using QueueService;
 using QueueService.Consumers;
+using Serilog;
+using Serilog.Formatting.Compact;
 using StatisticDbContext;
 
 
 var builder = Host.CreateApplicationBuilder(args);
-
+AddLogger(builder.Logging);
 AddDbContext(builder.Services, builder.Configuration);
 AddConsumers(builder.Services, builder.Configuration);
 
@@ -17,6 +19,19 @@ var host = builder.Build();
 
 await host.RunAsync();
 
+void AddLogger(ILoggingBuilder logging)
+{
+    Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .WriteTo.Http("http://localhost:5044",
+                 queueLimitBytes: null,
+                 textFormatter: new CompactJsonFormatter())
+    .CreateLogger();
+
+    logging.ClearProviders();
+    logging.AddSerilog(Log.Logger);
+}
 
 void AddDbContext(IServiceCollection services, IConfiguration configuration)
 {

@@ -4,9 +4,11 @@ using InnerTokenService.Helpers;
 using InnerTokenService.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
-
+AddLogger(builder.Logging);
 AddFilters(builder.Services);
 AddServices(builder.Services, builder.Configuration);
 RegistrationConsul(builder.Services, builder.Configuration);
@@ -21,7 +23,19 @@ app.UseAuthorization();
 app.MapControllers();
 app.Run();
 
+void AddLogger(ILoggingBuilder logging)
+{
+    Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .WriteTo.Http("http://localhost:5044",
+                 queueLimitBytes: null,
+                 textFormatter: new CompactJsonFormatter())
+    .CreateLogger();
 
+    logging.ClearProviders();
+    logging.AddSerilog(Log.Logger);
+}
 void AddFilters(IServiceCollection services)
 {
     services.AddControllers(options =>
