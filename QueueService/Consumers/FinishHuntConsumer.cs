@@ -46,7 +46,7 @@ namespace QueueService.Consumers
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                //_logger.LogInformation($"[FinishHuntConsumer] Received {message}");
+                _logger.LogInformation($"[FinishHuntConsumer] Received {message}");
 
                 try
                 {
