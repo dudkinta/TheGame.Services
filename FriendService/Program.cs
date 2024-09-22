@@ -30,12 +30,13 @@ app.Run();
 void AddLogger(ILoggingBuilder logging)
 {
     Log.Logger = new LoggerConfiguration()
-    .Enrich.FromLogContext()
-    .Enrich.WithMachineName()
-    .WriteTo.Http("http://localhost:5044",
-                 queueLimitBytes: null,
-                 textFormatter: new JsonFormatter())
-    .CreateLogger();
+        .Enrich.WithProperty("ServiceName", "FriendService")
+        .Enrich.FromLogContext()
+        .Enrich.WithMachineName()
+        .WriteTo.Http("http://localhost:5044",
+                     queueLimitBytes: null,
+                     textFormatter: new JsonFormatter())
+        .CreateLogger();
 
     logging.ClearProviders();
     logging.AddSerilog(Log.Logger);

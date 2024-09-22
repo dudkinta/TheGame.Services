@@ -163,7 +163,7 @@ namespace HuntingService.Controllers
                 _logger.LogInformation("Reward created: {@Reward}", reward);
 
                 await _messageSender.SendMessage(reward, RabbitRoutingKeys.FinishHunt, cancellationToken);
-                return Ok(new { main_coins = coins, heroes = heroRewards, items = itemRewards });
+                return Ok(new { main_coins = reward.coins, heroes = reward.Heroes, items = reward.Items });
             }
             catch (Exception ex)
             {
