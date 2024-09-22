@@ -159,11 +159,11 @@ namespace HuntingService.Controllers
                         itemRewards = Enumerable.Range(0, itemRewardCount).Select(_ => hunterRespResp.Message.RewardsItems.GetRandomElement());
                 }
 
-                var reward = new FinishHuntModel { Id = userId, AddShots = shots, AddAims = aims, coins = coins, Heroes = heroRewards, Items = itemRewards };
+                var reward = new FinishHuntModel { Id = userId, Guid = Guid.NewGuid().ToString(), AddShots = shots, AddAims = aims, coins = coins, Heroes = heroRewards, Items = itemRewards };
                 _logger.LogInformation("Reward created: {@Reward}", reward);
 
                 await _messageSender.SendMessage(reward, RabbitRoutingKeys.FinishHunt, cancellationToken);
-                return Ok(new { main_coins = reward.coins, heroes = reward.Heroes, items = reward.Items });
+                return Ok(new { main_coins = reward.coins, heroes = reward.Heroes, items = reward.Items, guid = reward.Guid });
             }
             catch (Exception ex)
             {
