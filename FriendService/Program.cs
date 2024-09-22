@@ -30,7 +30,7 @@ app.Run();
 void AddLogger(ILoggingBuilder logging)
 {
     Log.Logger = new LoggerConfiguration()
-        .Enrich.WithProperty("ServiceName", "FriendService")
+        .Enrich.WithProperty("ServiceName", "friend_service")
         .Enrich.FromLogContext()
         .Enrich.WithMachineName()
         .WriteTo.Http("http://localhost:5044",

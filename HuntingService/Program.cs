@@ -37,7 +37,7 @@ app.Run();
 void AddLogger(ILoggingBuilder logging)
 {
     Log.Logger = new LoggerConfiguration()
-        .Enrich.WithProperty("ServiceName", "HuntingService")
+        .Enrich.WithProperty("ServiceName", "hunting_service")
         .Enrich.FromLogContext()
         .Enrich.WithMachineName()
         .WriteTo.Http("http://localhost:5044",

@@ -26,7 +26,7 @@ app.Run();
 void AddLogger(ILoggingBuilder logging)
 {
     Log.Logger = new LoggerConfiguration()
-        .Enrich.WithProperty("ServiceName", "InnerTokenService")
+        .Enrich.WithProperty("ServiceName", "inner_token_service")
         .Enrich.FromLogContext()
         .Enrich.WithMachineName()
         .WriteTo.Http("http://localhost:5044",

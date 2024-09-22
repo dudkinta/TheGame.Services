@@ -22,7 +22,7 @@ await host.RunAsync();
 void AddLogger(ILoggingBuilder logging)
 {
     Log.Logger = new LoggerConfiguration()
-        .Enrich.WithProperty("ServiceName", "QueueService")
+        .Enrich.WithProperty("ServiceName", "queue_service")
         .Enrich.FromLogContext()
         .Enrich.WithMachineName()
         .WriteTo.Http("http://localhost:5044",
