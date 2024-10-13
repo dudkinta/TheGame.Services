@@ -79,6 +79,39 @@ namespace StatisticService.Controllers
         }
 
         [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
+        [HttpPut("firedarmy")]
+        public async Task<IActionResult> FiredArmy(int armyId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userId = _userService.GetUserId(User.Claims);
+                var army = await _context.Armies.FirstOrDefaultAsync(_ => _.user_id == userId && _.id == armyId, cancellationToken);
+                if (army != null)
+                {
+                    var equip = await _context.Inventory.Where(_ => _.user_id == userId && _.army_id == army.id).ToListAsync(cancellationToken);
+                    foreach (var item in equip)
+                    {
+                        item.army_id = null;
+                        item.army = null;
+                    }
+                    _context.Armies.Remove(army);
+                    await _context.SaveAsync(cancellationToken);
+                }
+                else
+                {
+                    return BadRequest("Army already full");
+                }
+                await _context.SaveAsync(cancellationToken);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
         [HttpGet("mergeheroes")]
         public async Task<IActionResult> MergeHeroes(CancellationToken cancellationToken)
         {
