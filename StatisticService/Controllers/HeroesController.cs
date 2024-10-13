@@ -99,7 +99,7 @@ namespace StatisticService.Controllers
                 }
                 else
                 {
-                    return BadRequest("Army already full");
+                    return BadRequest("Army not found");
                 }
                 await _context.SaveAsync(cancellationToken);
                 return Ok();
