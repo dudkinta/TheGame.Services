@@ -42,29 +42,31 @@ namespace StatisticService.Controllers
         }
 
         [Authorize(AuthenticationSchemes = "User", Policy = "UserPolicy")]
-        [HttpPut("sethunter")]
-        public async Task<IActionResult> SetHunter(int heroId, CancellationToken cancellationToken)
+        [HttpPut("setarmy")]
+        public async Task<IActionResult> SetArmy(int heroId, int useType, CancellationToken cancellationToken)
         {
             try
             {
+                if (useType < 1 || useType > 5)
+                    return BadRequest("bad useType");
+
                 var userId = _userService.GetUserId(User.Claims);
                 var barrack = await _context.Barracks.FirstOrDefaultAsync(_ => _.user_id == userId && _.id == heroId, cancellationToken);
-                var currentHunter = await _context.Armies.Include(_ => _.barrack).FirstOrDefaultAsync(_ => _.user_id == userId && _.useType == 1, cancellationToken);
-                if (currentHunter == null)
+                var currentArmy = await _context.Armies.Include(_ => _.barrack).Where(_ => _.user_id == userId && _.useType == useType).ToListAsync(cancellationToken);
+                if ((useType == 1 && currentArmy.Count < 5) || (useType != 1 && currentArmy.Count == 0))
                 {
                     var army = new ArmyModel()
                     {
                         barrack = barrack,
                         barrack_id = heroId,
-                        useType = 1,
+                        useType = useType,
                         user_id = userId,
                     };
                     await _context.Armies.AddAsync(army, cancellationToken);
                 }
                 else
                 {
-                    currentHunter.barrack = barrack;
-                    currentHunter.barrack_id = heroId;
+                    return BadRequest("Army already full");
                 }
                 await _context.SaveAsync(cancellationToken);
                 return Ok();
